@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Face Recognition</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+<body>
+    <h1>Face Recognition</h1>
+    <p>Upload an image to register a new face or use the webcam to recognize faces.</p>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <label for="name">Name:</label>
+        <input type="text" name="name" id="name" required>
+        <label for="image">Image:</label>
+        <input type="file" name="image" id="image" accept="image/*" required>
+        <button type="submit">Upload</button>
+    </form>
+    <a href="{{ url_for('views.index') }}">Index</a>
+
+    <a href="/recognize">Recognize Faces</a>
+</body>
+</html>
