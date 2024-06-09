@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Class</title>
+</head>
+<body>
+    <h1>Edit Class: {{ class_.name }}</h1>
+    <form action="{{ url_for('views.update_class', class_id=class_.id) }}" method="post">
+        <input type="text" name="class_name" value="{{ class_.name }}" required>
+        <button type="submit">Update Class</button>
+    </form>
+    <a href="{{ url_for('views.dashboard') }}">Back to Dashboard</a>
+</body>
+</html>

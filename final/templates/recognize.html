@@ -3,20 +3,21 @@
 <head>
     <title>Face Recognition</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-
-</head>
+   </head>
 <body>
-    <h1>Face Recognition</h1>
-    <video id="video" autoplay></video>
+    <h1>Video Recognition</h1>
+    <img src = "{{url_for('views.video_feed')}}" width = "600" height= "600" id="video_feed">  
     <script>
-        const video = document.getElementById('video');
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-            })
-            .catch(error => {
-                console.error('Error accessing camera:', error);
-            });
+        const videoFeed = document.getElementById('video_feed');
+      
+            videoFeed.onerror = function() {
+                console.log("Error loading video feed");
+      
+
+        };
     </script>
 </body>
 </html>
+
+
+

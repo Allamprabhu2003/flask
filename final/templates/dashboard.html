@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+</head>
+<body>
+    <h1>Welcome, Miss {{ current_user.first_name }} Kalal</h1>
+    <h2>Your Classes</h2>
+    <ul>
+        {% for class_ in classes %}
+            <li>
+                {{ class_.name }}
+                <a href="{{ url_for('views.class_attendance', class_id=class_.id) }}">View Attendance</a> |
+                <a href="{{ url_for('views.video_feed', class_id=class_.id) }}">Start Video Feed</a> |
+                <a href="{{ url_for('views.edit_class', class_id=class_.id) }}">Edit</a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>Add New Class</h2>
+    <form action="{{ url_for('views.add_class') }}" method="post">
+        <input type="text" name="class_name" placeholder="Class Name" required>
+        <button type="submit">Add Class</button>
+    </form>
+</body>
+</html>
