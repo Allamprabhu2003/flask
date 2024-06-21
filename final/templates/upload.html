@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Face Recognition</h1>
+    <p>Upload an image to register a new face or use the webcam to recognize faces.</p>
+    <form method="POST" enctype="multipart/form-data" action="{{ url_for('views.upload') }}">
+        <input type="text" name="name" placeholder="Name">
+        <input type="file" name="image" accept="image/*">
+        <input type="submit" value="Upload">
+      </form>
+      
+
+    <h2><a href="/login">Login</a></h2>
+</body>
+</html>
+
+ <!-- <form action="/upload" method="POST" enctype="multipart/form-data">
+        <label for="name">Name:</label>
+        <input type="text" name="name" id="name" required>
+        <label for="image">Image:</label>
+        <input type="file" name="image" id="image" accept="image/*" required>
+        <button type="submit" value="upload">Upload</button>
+    </form> -->

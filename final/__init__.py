@@ -1,6 +1,7 @@
 from flask_admin import Admin
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
+from werkzeug.middleware.profiler import ProfilerMiddleware
 
 from flask import Flask
 
@@ -27,6 +28,7 @@ def create_app():
     # app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.init_app(app)
     print("\n Fourth line\n")
+    # app.wsgi_app = ProfilerMiddleware(app.wsgi_app, restrictions=[30])
 
     # Register blueprints
     from .auth import auth

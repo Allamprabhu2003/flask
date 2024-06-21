@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Attendance System</title>
+</head>
+<body>
+    <h1>Welcome to the Attendance System</h1>
+    <ul>
+        {% if current_user.is_authenticated %}
+            <li><a href="{{ url_for('views.dashboard') }}">Dashboard</a></li>
+            {% for calss_ in calsses %}
+            <li><a href="{{ url_for('views.video_feed', class_id=class_.id )}}">Recognize</a></li>
+            {% endfor %}
+            <li><a href="{{ url_for('views.upload') }}">Upload Student Face</a></li>
+            <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+        {% else %}
+            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+            <li><a href="{{ url_for('auth.sign_up') }}">Sign Up</a></li>
+        {% endif %}
+    </ul>
+</body>
+</html>

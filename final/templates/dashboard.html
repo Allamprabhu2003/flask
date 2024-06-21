@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -14,7 +16,10 @@
                 {{ class_.name }}
                 <a href="{{ url_for('views.class_attendance', class_id=class_.id) }}">View Attendance</a> |
                 <a href="{{ url_for('views.video_feed', class_id=class_.id) }}">Start Video Feed</a> |
+
                 <a href="{{ url_for('views.edit_class', class_id=class_.id) }}">Edit</a>
+                <a href="{{ url_for('views.upload') }}">Upload</a>
+                <a href="{{ url_for('views.recognize_image', class_id=class_.id) }}">Recognize Image</a>
             </li>
         {% endfor %}
     </ul>
@@ -24,5 +29,18 @@
         <input type="text" name="class_name" placeholder="Class Name" required>
         <button type="submit">Add Class</button>
     </form>
+
+    <h2>Least Attended Students</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Class Name</th>
+                <th>Student Name</th>
+                <th>Average Attendance</th>
+            </tr>
+        </thead>
+      
+    </table>
+    
 </body>
 </html>

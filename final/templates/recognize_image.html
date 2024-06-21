@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recognize Image</title>
+</head>
+<body>
+    <h1>Recognize Image</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*">
+        <input type="submit" value="Recognize">
+    </form>
+
+    {% for class_ in classes %}
+    
+    <img src="{{ url_for('views.recognize_image',class_id=class_id) }}" alt="Recognized Image">
+{% endfor %}
+    
+</body>
+</html>
