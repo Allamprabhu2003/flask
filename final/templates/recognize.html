@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
     <title>Face Recognition</title>
@@ -18,4 +18,108 @@
 </html>
 
 
+ -->
 
+
+ <!DOCTYPE html>
+<html>
+<head>
+    <title>Face Recognition</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .loader {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        @keyframes spin {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <h1>Video Recognition</h1>
+    <div style="position: relative; width: 600px; height: 600px;">
+        <div class="loader" id="loader"></div>
+        <img src="{{ url_for('views.video_feed', class_id=class_id) }}" width="600" height="600" id="video_feed">
+    </div>
+    <button id="start_stop">Start/Stop</button>
+    <script>
+        const videoFeed = document.getElementById('video_feed');
+        const loader = document.getElementById('loader');
+        const startStopButton = document.getElementById('start_stop');
+        let isPlaying = true;
+
+        videoFeed.onloadstart = function() {
+            loader.style.display = 'block';
+        };
+
+        videoFeed.onload = function() {
+            loader.style.display = 'none';
+        };
+
+        videoFeed.onerror = function() {
+            console.log("Error loading video feed");
+            loader.style.display = 'none';
+        };
+
+        startStopButton.onclick = function() {
+            if (isPlaying) {
+                videoFeed.style.display = 'none';
+                isPlaying = false;
+                startStopButton.textContent = 'Start';
+            } else {
+                videoFeed.style.display = 'block';
+                isPlaying = true;
+                startStopButton.textContent = 'Stop';
+            }
+        };
+    </script>
+    <script>
+        const videoFeed = document.getElementById('video_feed');
+        
+        // Set up event source for server-sent events
+        const eventSource = new EventSource("{{ url_for('views.video_feed', class_id=class_id) }}");
+        
+        eventSource.onmessage = function(event) {
+            if (event.data === "video_end") {
+                eventSource.close();
+                window.location.href = "{{ url_for('views.dashboard') }}";  // Redirect to dashboard
+            }
+        };
+        
+        videoFeed.onerror = function() {
+            console.log("Error loading video feed");
+            eventSource.close();
+        };
+    </script>
+    <script>
+        const videoFeed = document.getElementById('video_feed');
+        
+        // Set up event source for server-sent events
+        const eventSource = new EventSource("{{ url_for('views.video_feed', class_id=class_id) }}");
+        
+        eventSource.onmessage = function(event) {
+            if (event.data === "video_end") {
+                eventSource.close();
+                window.location.href = "{{ url_for('views.dashboard') }}";  // Redirect to dashboard
+            }
+        };
+        
+        videoFeed.onerror = function() {
+            console.log("Error loading video feed");
+            eventSource.close();
+        };
+    </script>
+
+</body>
+</html>

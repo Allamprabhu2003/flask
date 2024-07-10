@@ -3,26 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Register Student and Upload Face</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
 </head>
 <body>
-    <h1>Face Recognition</h1>
-    <p>Upload an image to register a new face or use the webcam to recognize faces.</p>
-    <form method="POST" enctype="multipart/form-data" action="{{ url_for('views.upload') }}">
-        <input type="text" name="name" placeholder="Name">
-        <input type="file" name="image" accept="image/*">
-        <input type="submit" value="Upload">
-      </form>
-      
+    <div class="container mt-5">
+        <h2 class="mb-4">Register Student and Upload Face</h2>
+        <form method="POST" action="{{ url_for('student.upload') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="course_type">Course Type</label>
+                <select class="form-control" id="course_type" name="course_type">
+                    <option value="">Select a course type</option>
+                    {% for course_type in course_types %}
+                        <option value="{{ course_type }}">{{ course_type }}</option>
+                    {% endfor %}
+                    <option value="new">Add new course type</option>
+                </select>
+            </div>
+            <div class="form-group" id="new_course_type_div" style="display: none;">
+                <label for="new_course_type">New Course Type</label>
+                <input type="text" class="form-control" id="new_course_type" name="new_course_type">
+            </div>
+            <div class="form-group">
+                <label for="image">Face Image</label>
+                <input type="file" class="form-control-file" id="image" name="image" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Register Student and Upload Face</button>
+        </form>
+    </div>
 
-    <h2><a href="/login">Login</a></h2>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('course_type').addEventListener('change', function() {
+            var newCourseTypeDiv = document.getElementById('new_course_type_div');
+            if (this.value === 'new') {
+                newCourseTypeDiv.style.display = 'block';
+            } else {
+                newCourseTypeDiv.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>
-
- <!-- <form action="/upload" method="POST" enctype="multipart/form-data">
-        <label for="name">Name:</label>
-        <input type="text" name="name" id="name" required>
-        <label for="image">Image:</label>
-        <input type="file" name="image" id="image" accept="image/*" required>
-        <button type="submit" value="upload">Upload</button>
-    </form> -->
