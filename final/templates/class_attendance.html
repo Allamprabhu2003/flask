@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Attendance</title>
+    <script>
+        function fetchAttendance() {
+            fetch("/class/{{ class_.id }}/attendance_records")
+                .then(response => response.json())
+                .then(data => {
+                    const attendanceList = document.getElementById("attendance-list");
+                    attendanceList.innerHTML = "";
+                    data.forEach(record => {
+                        const listItem = document.createElement("li");
+                        const timestamp = new Date(record.timestamp).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });  // Convert to local time zone
+                        listItem.textContent = `${record.student_name} - ${timestamp}`;
+                        attendanceList.appendChild(listItem);
+                    });
+                });
+        }
+
+        setInterval(fetchAttendance, 5000);  // Fetch attendance every 5 seconds
+    </script>
+</head>
+<body onload="fetchAttendance()">
+    <h1>Attendance for {{ class_.name }}</h1>
+    <ul id="attendance-list">
+        {% for record in attendance_records %}
+            <li>{{ record.student_name }} - {{ record.timestamp }}</li>
+        {% endfor %}
+    </ul>
+    <a href="{{ url_for('views.dashboard') }}">Back to Dashboard</a>
+</body>
+</html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Permissions</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2>User Permissions</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Permissions</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.first_name }} {{ user.last_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        Add: {{ 'Yes' if user.can_add_classes else 'No' }}<br>
+                        Edit: {{ 'Yes' if user.can_edit_classes else 'No' }}<br>
+                        Delete: {{ 'Yes' if user.can_delete_classes else 'No' }}
+                    </td>
+                    <td>
+                        <form action="{{ url_for('admin_bp.user_permissions') }}" method="post">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="can_add_classes" id="can_add_classes_{{ user.id }}" {% if user.can_add_classes %}checked{% endif %}>
+                                <label class="form-check-label" for="can_add_classes_{{ user.id }}">
+                                    Can Add Classes
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="can_edit_classes" id="can_edit_classes_{{ user.id }}" {% if user.can_edit_classes %}checked{% endif %}>
+                                <label class="form-check-label" for="can_edit_classes_{{ user.id }}">
+                                    Can Edit Classes
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="can_delete_classes" id="can_delete_classes_{{ user.id }}" {% if user.can_delete_classes %}checked{% endif %}>
+                                <label class="form-check-label" for="can_delete_classes_{{ user.id }}">
+                                    Can Delete Classes
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm mt-2">Update</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <form method="POST">
+        <!-- {% for user in users %}
+          <div>
+            <label>
+              <input type="checkbox" name="can_manage_classes_{{ user.id }}" 
+                     {% if user.can_manage_classes %}checked{% endif %}>
+              {{ user.first_name }} {{ user.last_name }} can manage classes
+            </label>
+          </div>
+        {% endfor %} -->
+        {% for user in users %}
+          <div>
+           
+              <input type="checkbox" name="can_add_classes_{{ user.id }}" {% if user.can_add_classes %}checked{% endif %}>
+      <input type="checkbox" name="can_edit_classes_{{ user.id }}" {% if user.can_edit_classes %}checked{% endif %}>
+      <input type="checkbox" name="can_delete_classes_{{ user.id }}" {% if user.can_delete_classes %}checked{% endif %}>
+          </div>
+        {% endfor %}
+        <button type="submit">Update Permissions</button>
+      </form>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
