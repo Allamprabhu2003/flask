@@ -3,6 +3,8 @@ from flask_debugtoolbar import DebugToolbarExtension
 # import pytest
 
 app = create_app()
+app.app_context().push()
+
 
 if __name__ == '__main__':
     toolbar = DebugToolbarExtension(app)

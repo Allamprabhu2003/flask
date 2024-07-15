@@ -1,0 +1,39 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<h1>Welcome to the Admin Dashboard</h1>
+<div class="row">
+    <div class="col-md-3">
+        <div class="panel panel-info">
+            <div class="panel-heading">Users</div>
+            <div class="panel-body">
+                <h3>{{ user_count }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-success">
+            <div class="panel-heading">Classes</div>
+            <div class="panel-body">
+                <h3>{{ class_count }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-warning">
+            <div class="panel-heading">Students</div>
+            <div class="panel-body">
+                <h3>{{ student_count }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="panel panel-danger">
+            <div class="panel-heading">Attendance Records</div>
+            <div class="panel-body">
+                <h3>{{ attendance_count }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

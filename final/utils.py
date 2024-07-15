@@ -166,7 +166,7 @@ import numpy as np
 from sqlalchemy.orm import joinedload
 from flask import current_app, g, flash
 from sqlalchemy import func
-from . import db
+from .extention import db
 from .models import Attendance, Class, Face, Student
 
 # Enable optimizations
@@ -178,7 +178,7 @@ face_detector = dlib.get_frontal_face_detector()
 shape_predictor = dlib.shape_predictor('Models/shape_predictor_68_face_landmarks_GTX.dat')
 face_recognizer = dlib.face_recognition_model_v1('Models/dlib_face_recognition_resnet_model_v1.dat')
 
-THRESH = 0.55
+THRESH = 0.50
 IMAGE_SIZE = 400
 FACE_SIZE = 150
 MAX_FACES_TO_RECOGNIZE = 10
@@ -306,98 +306,226 @@ def run_face_recognition(frame):
     return frame, face_names
 
 
-from datetime import datetime
+# from datetime import datetime, timedelta
+# from flask import current_app, flash
+# from sqlalchemy import func
+# from .extention import db
+# from .models import Attendance, Class, Student
+
+# def update_attendance(recognized_names, class_id):
+#     with current_app.app_context():
+#         class_ = Class.query.get(class_id)
+#         if not class_:
+#             # flash("Class not found", "error")
+#             return
+
+#         # today = datetime.now().date()
+#         now = datetime.now()
+#         two_hours_ago = now - timedelta(hours=2)
+#         today = now.date()
+#         processed_names = set()
+
+#         for name in set(recognized_names):
+#             # Find the student by first name
+#             student = Student.query.filter_by(first_name=name).first()
+            
+#             if student:
+#                 # Check if the student's course type matches the class course type
+#                 if student.course_type == class_.course_type:
+#                     # Check if the student is already in the class
+#                     if student not in class_.students:
+#                         class_.students.append(student)
+                    
+#                     # Check for existing attendance
+#                     existing_attendance = Attendance.query.filter(
+#                         Attendance.student_id == student.id,
+#                         Attendance.class_id == class_id,
+#                         # func.date(Attendance.timestamp) == today, 
+#                         Attendance.timestamp >= two_hours_ago
+
+#                     ).first()
+#                     # print(func.data(Attendance.timestamp) <= two_hours_ago)
+#                     print(existing_attendance)
+
+#                     if not existing_attendance:
+#                         new_attendance = Attendance(
+#                             student_id=student.id,
+#                             class_id=class_id,
+#                             status="present"
+#                         )
+#                         db.session.add(new_attendance)
+#                         # flash(f"Attendance marked for {student.first_name} {student.last_name}", "success")
+#                         print(f"Attendance marked for {student.first_name} {student.last_name}")
+#                     else:
+#                         # flash(f"Attendance already marked for {student.first_name} {student.last_name}", "info")
+#                         print(f"Attendance already marked for {student.first_name} {student.last_name}")
+#                 else:
+#                     # flash(f"Student {name} is not enrolled in this course type", "warning")
+#                     print(f"Student {name} is not enrolled in this course type")
+#             else:
+#                 # flash(f"Student {name} not found", "warning")
+#                 print(f"Student {name} not found")
+
+#         db.session.commit()
+
+
+# from datetime import datetime, timedelta
+# from flask import current_app, flash
+# from sqlalchemy import func
+# from .extention import db
+# from .models import Attendance, Class, Student
+
+# def update_attendance(recognized_names, class_id):
+#     with current_app.app_context():
+#         class_ = Class.query.get(class_id)
+#         if not class_:
+#             flash("Class not found", "error")
+
+#             print("Class not found")
+#             return
+
+#         now = datetime.now()
+#         two_hours_ago = now - timedelta(seconds=30)
+
+#         for name in set(recognized_names):
+#             student = Student.query.filter_by(first_name=name).first()
+            
+#             if student:
+#                 if student.course_type == class_.course_type:
+#                     if student not in class_.students:
+#                         class_.students.append(student)
+                    
+#                     existing_attendance = Attendance.query.filter(
+#                         Attendance.student_id == student.id,
+#                         Attendance.class_id == class_id,
+#                         Attendance.timestamp.between(two_hours_ago, now)
+
+#                         # func.date(Attendance.timestamp) == now, 
+
+#                         # Attendance.timestamp >= two_hours_ago
+#                     ).first()
+
+#                     if not existing_attendance:
+#                         new_attendance = Attendance(
+#                             student_id=student.id,
+#                             class_id=class_id,
+#                             status="present",
+#                             timestamp=now
+#                         )
+#                         db.session.add(new_attendance)
+#                         flash(f"Attendance marked for {student.first_name} {student.last_name}", "success")
+
+#                         print(f"Attendance marked for {student.first_name} {student.last_name}")
+#                     else:
+#                         flash(f"Attendance already marked for {student.first_name} {student.last_name}", "info")
+
+#                         print(f"Attendance already marked for {student.first_name} {student.last_name} within the last 2 hours")
+#                 else:
+#                     flash(f"Student {name} not found in this class", "warning")
+
+#                     print(f"Student {name} is not enrolled in this course type")
+#             else:
+#                 print(f"Student {name} not found")
+
+#         db.session.commit()
+
+
+# def update_attendance(recognized_names, class_id):
+#     with current_app.app_context():
+#         class_ = Class.query.get(class_id)
+#         if not class_:
+#             # flash("Class not found", "error")
+#             return
+
+#         students = {s.first_name: s for s in class_.students}
+#         today = datetime.now().date()
+
+#         existing_attendances = {
+#             a.student_id: a for a in Attendance.query.filter(
+#                 Attendance.class_id == class_id,
+#                 func.date(Attendance.timestamp) == today
+#             )
+#         }
+
+#         new_attendances = []
+#         for name in set(recognized_names):
+#             student = students.get(name)
+#             if student:
+#                 if student.id not in existing_attendances:
+#                     new_attendances.append(Attendance(
+#                         student_id=student.id,
+#                         class_id=class_id,
+#                         status="present"
+#                     ))
+#                     flash(f"Attendance marked for {student.first_name} {student.last_name}", "success")
+#                     print(f"Attendance marked for {student.first_name} {student.last_name}")
+#                 else:
+#                     flash(f"Attendance already marked for {student.first_name} {student.last_name}", "info")
+#                     print(f"Attendance already marked for {student.first_name} {student.last_name}")
+#             else:
+#                 flash(f"Student {name} not found in this class", "warning")
+#                 print(f"Student {name} not found in this class")
+
+#         if new_attendances:
+#             db.session.bulk_save_objects(new_attendances)
+#             db.session.commit()
+
+
+
+
+from datetime import datetime, timedelta
 from flask import current_app, flash
 from sqlalchemy import func
 from .extention import db
 from .models import Attendance, Class, Student
+import pytz  # Ensure you have this package installed
+
 
 def update_attendance(recognized_names, class_id):
     with current_app.app_context():
         class_ = Class.query.get(class_id)
         if not class_:
             flash("Class not found", "error")
+            print("Class not found")
             return
 
-        today = datetime.now().date()
+        # now = datetime.now()
+        now = datetime.utcnow()  # Use UTC time
+
+        two_hours_ago = now - timedelta(hours=2)  # Corrected to two hours
 
         for name in set(recognized_names):
-            # Find the student by first name
             student = Student.query.filter_by(first_name=name).first()
             
             if student:
-                # Check if the student's course type matches the class course type
                 if student.course_type == class_.course_type:
-                    # Check if the student is already in the class
                     if student not in class_.students:
                         class_.students.append(student)
                     
-                    # Check for existing attendance
                     existing_attendance = Attendance.query.filter(
                         Attendance.student_id == student.id,
                         Attendance.class_id == class_id,
-                        func.date(Attendance.timestamp) == today
+                        Attendance.timestamp >= two_hours_ago,
+                        Attendance.timestamp <= now
                     ).first()
 
                     if not existing_attendance:
                         new_attendance = Attendance(
                             student_id=student.id,
                             class_id=class_id,
-                            status="present"
+                            status="present",
+                            timestamp=now
                         )
                         db.session.add(new_attendance)
                         flash(f"Attendance marked for {student.first_name} {student.last_name}", "success")
                         print(f"Attendance marked for {student.first_name} {student.last_name}")
                     else:
                         flash(f"Attendance already marked for {student.first_name} {student.last_name}", "info")
-                        print(f"Attendance already marked for {student.first_name} {student.last_name}")
+                        print(f"Attendance already marked for {student.first_name} {student.last_name} within the last 2 hours")
                 else:
-                    flash(f"Student {name} is not enrolled in this course type", "warning")
+                    flash(f"Student {name} not found in this class", "warning")
                     print(f"Student {name} is not enrolled in this course type")
             else:
-                flash(f"Student {name} not found", "warning")
                 print(f"Student {name} not found")
 
         db.session.commit()
-
-
-
-# def update_attendance(recognized_names, class_id):
-    with current_app.app_context():
-        class_ = Class.query.get(class_id)
-        if not class_:
-            flash("Class not found", "error")
-            return
-
-        students = {s.first_name: s for s in class_.students}
-        today = datetime.now().date()
-
-        existing_attendances = {
-            a.student_id: a for a in Attendance.query.filter(
-                Attendance.class_id == class_id,
-                func.date(Attendance.timestamp) == today
-            )
-        }
-
-        new_attendances = []
-        for name in set(recognized_names):
-            student = students.get(name)
-            if student:
-                if student.id not in existing_attendances:
-                    new_attendances.append(Attendance(
-                        student_id=student.id,
-                        class_id=class_id,
-                        status="present"
-                    ))
-                    flash(f"Attendance marked for {student.first_name} {student.last_name}", "success")
-                    print(f"Attendance marked for {student.first_name} {student.last_name}")
-                else:
-                    flash(f"Attendance already marked for {student.first_name} {student.last_name}", "info")
-                    print(f"Attendance already marked for {student.first_name} {student.last_name}")
-            else:
-                flash(f"Student {name} not found in this class", "warning")
-                print(f"Student {name} not found in this class")
-
-        if new_attendances:
-            db.session.bulk_save_objects(new_attendances)
-            db.session.commit()

@@ -1,4 +1,4 @@
-<!-- 
+<!-- <!-- <!-- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,7 +36,7 @@
 </body>
 </html> -->
 
-
+<!-- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,19 +47,21 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
     <div class="container mt-5">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                        {{ message }}
-                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
 
         <form method="POST" action="{{ url_for('auth.login') }}">
             <h3 class="text-center mb-4">Login</h3>
@@ -74,9 +76,268 @@
             <button type="submit" class="btn btn-primary btn-block">Login</button>
         </form>
     </div>
+    <p><a href="{{ url_for('auth.sign_up') }}">Sign UP</a></p>
+    <div class="container mt-5">
+        
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>  --> 
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+</head>
+<style>
+    /* styles.css */
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(to right, #99bff9, #4789ec);
+}
+
+.container {
+  display: flex;
+  width:50vw;
+  height: 60vh;
+  box-shadow: 0 0 50px black;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.left-section {
+  background-color: #3f84ef;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.left-section .content {
+  text-align: center;
+}
+
+.left-section .main-image {
+  width: 100%;
+    height: 100%;
+    object-fit: cover;
+ 
+}
+
+
+
+.right-section {
+  background-color: white;
+  padding: 30px;
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.login-form {
+  width: 100%;
+  max-width: 250px;
+  text-align: left;
+}
+
+.login-form h2 {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.login-form p {
+  margin-bottom: 20px;
+  color: #666;
+}
+
+.login-form label {
+  display: block;
+  margin: 10px 0 5px;
+}
+
+.login-form input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.forgot-password {
+  color: #4e73df;
+  text-decoration: none;
+  font-size: 0.9em;
+}
+
+.login-button {
+  background-color: #4e73df;
+  color: white;
+  border: none;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1em;
+}
+
+.signup {
+  margin-top: 20px;
+}
+
+.signup a {
+  color: #4e73df;
+  text-decoration: none;
+}
+.notification-vibrant {
+    position: absolute;
+    top: 50px;
+    width: 30%;
+    left:580px;
+    right: 0;
+    box-sizing: border-box;
+    z-index: 1000; /* Ensure it is above other elements */
+}
+
+.notification-vibrant .alert {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #fff; /* Set background to white */
+    color: #e90a0a; /* Set text color to dark */
+    font-family: 'Arial', sans-serif;
+    font-size: 13px;
+    position: relative;
+}
+
+.notification-vibrant .alert .alert-icon {
+    font-size: 15px;
+    margin-right: 15px;
+}
+
+.notification-vibrant .alert .alert-message {
+    flex: 1;
+}
+
+.notification-vibrant .alert-dismissible .close-btn {
+    position: absolute;
+    top: 4px;
+    right: 15px;
+    color: #333; /* Match close button color with text */
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+
+/* Specific alert colors for borders and icons */
+.notification-vibrant .alert-danger {
+    border-left: 5px solid #ff4e50; /* Red border */
+}
+
+.notification-vibrant .alert-success {
+    border-left: 5px solid #24c6dc; /* Blue-green border */
+}
+
+.notification-vibrant .alert-warning {
+    border-left: 5px solid #f7971e; /* Orange border */
+}
+
+.notification-vibrant .alert-info {
+    border-left: 5px solid #56ccf2; /* Light blue border */
+}
+.close-btn{
+    align-items: center;
+}
+
+
+
+
+</style>
+<body>
+    <div class="notification notification-vibrant">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            <span class="alert-icon">&#9888;</span>
+            <span class="alert-message">{{ message }}</span>
+            <button type="button" class="close close-btn" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+    
+
+<form method="POST" action="{{ url_for('auth.login') }}">
+    <div class="container">
+        <div class="left-section">
+            <div class="content">
+              <img src="{{ url_for('static', filename='imag.jpg') }}" class="main-image" />
+                <!-- <img src=".\final\templates\imag.jpg" alt="Face Recognition" class="main-image"> -->
+            </div>
+        </div>
+        <div class="right-section">
+            <div class="login-form">
+                <h2>Sign in</h2>
+                
+                <form>
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your email">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password">
+                    <button type="submit" class="login-button">Login</button><br>
+                    <a href="#" class="forgot-password">Forgot Password?</a>
+                </form>
+                <p class="signup">Not a member? <a href="{{ url_for('auth.sign_up') }}">Create New Account</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Wait for the DOM to load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Get all close buttons
+            var closeButtons = document.querySelectorAll('.close-btn');
+            
+            // Add click event listener to each close button
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    // Find the parent alert element
+                    var alert = button.closest('.alert');
+                    
+                    // Remove the alert element from the DOM
+                    alert.remove();
+                });
+            });
+        });
+    </script>
+    
 </body>
 </html>

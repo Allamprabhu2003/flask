@@ -1,0 +1,40 @@
+{% extends 'admin/master.html' %}
+
+{% block body %}
+<div class="container-fluid">
+    <h1>Custom Admin Dashboard</h1>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-info">
+                <strong>Welcome to the Custom Admin Panel!</strong> Here you can manage users and classes.
+            </div>
+        </div>
+    </div>
+    <!-- Custom Elements -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Quick Actions
+                </div>
+                <div class="card-body">
+                    <a href="{{ url_for('admin.index') }}" class="btn btn-primary">Go to Admin Dashboard</a>
+                    <a href="{{ url_for('admin_bp.user_permissions') }}" class="btn btn-secondary">Manage User Permissions</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    Statistics
+                </div>
+                <div class="card-body">
+                    <p>Number of Users: {{ user_count }}</p>
+                    <p>Number of Classes: {{ class_count }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- End Custom Elements -->
+</div>
+{% endblock %}

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html>
 <head>
     <title>Attendance System</title>
@@ -18,5 +18,88 @@
             <li><a href="{{ url_for('auth.sign_up') }}">Sign Up</a></li>
         {% endif %}
     </ul>
+</body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance System</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+        }
+        nav ul {
+            list-style-type: none;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            background-color: #333;
+        }
+        nav ul li {
+            margin: 0 15px;
+        }
+        nav ul li a {
+            color: white;
+            text-decoration: none;
+            padding: 10px 20px;
+            display: block;
+        }
+        nav ul li a:hover {
+            background-color: #4CAF50;
+        }
+        main {
+            padding: 20px;
+            text-align: center;
+        }
+        footer {
+            background-color: #333;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Welcome to the Attendance System</h1>
+    </header>
+    <nav>
+        <ul>
+            {% if current_user.is_authenticated %}
+                <li><a href="{{ url_for('views.dashboard') }}">Dashboard</a></li>
+                {% for class_ in classes %}
+                <li><a href="{{ url_for('views.video_feed', class_id=class_.id) }}">Recognize</a></li>
+                {% endfor %}
+                <li><a href="{{ url_for('student.register_student') }}">Upload Student Face</a></li>
+                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+            {% else %}
+                <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                <li><a href="{{ url_for('auth.sign_up') }}">Sign Up</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    <main>
+        <p>Use the navigation bar above to access different sections of the system.</p>
+    </main>
+    <footer>
+        <p>&copy; 2024 Attendance System. All rights reserved.</p>
+    </footer>
 </body>
 </html>

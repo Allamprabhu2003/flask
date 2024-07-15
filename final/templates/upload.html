@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -69,4 +69,210 @@
         });
     </script>
 </body>
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Student and Upload Face</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-control {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .drag-drop {
+            padding: 20px;
+            border: 2px dashed #00796b;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+        }
+
+        .drag-drop p {
+            margin: 0;
+            color: #00796b;
+            font-size: 16px;
+        }
+
+        .drag-drop:hover {
+            background-color: #e0f7fa;
+        }
+
+        .drag-drop input[type="file"] {
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+
+        .btn {
+            background-color: #00796b;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            display: inline-block;
+        }
+
+        .btn:hover {
+            background-color: #004d40;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        #new_course_type_div {
+            display: none;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Student Register Details</h2>
+        <form method="POST" action="{{ url_for('student.upload') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="roll_number">Roll Number</label>
+                <input type="text" class="form-control" id="roll_number" name="roll_number" required>
+            </div>
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="course_type">Course Type</label>
+                <select class="form-control" id="course_type" name="course_type">
+                    <option value="">Select a course type</option>
+                    {% for course_type in course_types %}
+                    <option value="{{ course_type }}">{{ course_type }}</option>
+                    {% endfor %}
+                    <option value="new">Add new course type</option>
+                </select>
+            </div>
+            <div class="form-group" id="new_course_type_div">
+                <label for="new_course_name">New Course Name</label>
+                <input type="text" class="form-control" id="new_course_name" name="new_course_name">
+            </div>
+            <div class="form-group">
+                <label for="image">Face Image</label>
+                <div class="drag-drop" id="drop-area">
+                    <p>Drag & Drop your file here or click to upload</p>
+                    <input type="file" class="form-control-file" id="image" name="image" required>
+                </div>
+                <p id="file-info"></p>
+            </div>
+            <button type="submit" class="btn">Register Student</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('course_type').addEventListener('change', function () {
+            var newCourseTypeDiv = document.getElementById('new_course_type_div');
+            if (this.value === 'new') {
+                newCourseTypeDiv.style.display = 'block';
+            } else {
+                newCourseTypeDiv.style.display = 'none';
+            }
+        });
+
+        document.getElementById('drop-area').addEventListener('dragover', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.add('dragging');
+        });
+
+        document.getElementById('drop-area').addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('dragging');
+        });
+
+        document.getElementById('drop-area').addEventListener('drop', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('dragging');
+            var files = e.dataTransfer.files;
+            handleFiles(files);
+        });
+
+        document.getElementById('drop-area').addEventListener('click', function () {
+            document.getElementById('image').click();
+        });
+
+        document.getElementById('image').addEventListener('change', function () {
+            var files = this.files;
+            handleFiles(files);
+        });
+
+        function handleFiles(files) {
+            var file = files[0];
+            var fileInfo = document.getElementById('file-info');
+            fileInfo.textContent = `File name: ${file.name}`;
+            var dropArea = document.getElementById('drop-area');
+            dropArea.classList.add('uploaded');
+            dropArea.children[0].textContent = `File uploaded: ${file.name}`;
+        }
+    </script>
+</body>
+
 </html>

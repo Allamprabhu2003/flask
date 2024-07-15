@@ -1,53 +1,250 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(to right, #99bff9, #4789ec);
+        }
+
+        .container {
+            display: flex;
+            width: 80%;
+            max-width: 1000px;
+            height: 650px; /* Increased height */
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            overflow: hidden;
+        }
+
+        .left-section {
+            background-color: #3f84ef;
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .left-section .main-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .right-section {
+            background-color: white;
+            padding: 40px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .form-control {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        h2 {
+            margin-bottom: 30px;
+            text-align: center;
+            color: #333;
+            font-size: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .form-check {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .form-check-input {
+            margin-right: 10px;
+        }
+
+        .login-button {
+            background-color: #4e73df;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        .login-button:hover {
+            background-color: #3a5fc8;
+        }
+
+        .signup {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 14px;
+            padding: 10px 0; /* Added padding */
+        }
+
+        .signup a {
+            color: #4e73df;
+            text-decoration: none;
+        }
+
+        .notification-vibrant {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 300px;
+            z-index: 1000;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .alert-message {
+            flex: 1;
+        }
+
+        .close-btn {
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: inherit;
+        }
+
+        .alert-danger {
+            background-color: #ffe5e5;
+            color: #ff4e50;
+            border-left: 5px solid #ff4e50;
+        }
+
+        .alert-success {
+            background-color: #e5fff2;
+            color: #24c6dc;
+            border-left: 5px solid #24c6dc;
+        }
+
+        .alert-warning {
+            background-color: #fff5e5;
+            color: #f7971e;
+            border-left: 5px solid #f7971e;
+        }
+
+        .alert-info {
+            background-color: #e5f6ff;
+            color: #56ccf2;
+            border-left: 5px solid #56ccf2;
+        }
+    </style>
 </head>
 <body>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
+    <div class="notification-vibrant">
+        {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <ul>
-                {% for category, message in messages %}
-                    <li class="alert alert-{{ category }}">{{ message }}</li>
-                {% endfor %}
-            </ul>
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            <span class="alert-icon">&#9888;</span>
+            <span class="alert-message">{{ message }}</span>
+            <button type="button" class="close-btn" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
         {% endif %}
-    {% endwith %}
-
-    <div class="container">
-        <form method="POST" action="{{ url_for('auth.sign_up') }}">
-            <h3 class="text-center mt-4 mb-4">Sign Up</h3>
-            <div class="form-group">
-                <label for="first_name">First Name:</label>
-                <input type="text" class="form-control" id="first_name" name="first_name" required>
-            </div>
-            <div class="form-group">
-                <label for="last_name">Last Name:</label>
-                <input type="text" class="form-control" id="last_name" name="last_name" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" class="form-control" id="password" name="password1" required>
-            </div>
-            <div class="form-group">
-                <label for="confirm_password">Confirm Password:</label>
-                <input type="password" class="form-control" id="confirm_password" name="password2" required>
-            </div>
-            <div class="form-group form-check">
-                <input type="checkbox" class="form-check-input" id="is_teacher" name="is_teacher">
-                <label class="form-check-label" for="is_teacher">I am a teacher</label>
-            </div>
-            <button type="submit" class="btn btn-primary">Sign Up</button>
-        </form>
+        {% endwith %}
     </div>
+    
+    <div class="container">
+        <div class="left-section">
+            <img src="{{ url_for('static', filename='imag.jpg') }}" class="main-image" alt="Sign Up Image" />
+        </div>
+        <div class="right-section">
+            <div class="form-control">
+                <h2>Sign Up</h2>
+                <form method="POST" action="{{ url_for('auth.sign_up') }}">
+                    <div class="form-group">
+                        <label for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="last_name">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm_password">Confirm Password</label>
+                        <input type="password" id="confirm_password" name="password2" required>
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="is_teacher" name="is_teacher">
+                        <label for="is_teacher">Admin</label>
+                    </div>
+                    <button type="submit" class="login-button">Sign Up</button>
+                </form>
+                <p class="signup">Already have an account? <a href="#">Log In</a></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var closeButtons = document.querySelectorAll('.close-btn');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var alert = button.closest('.alert');
+                    alert.remove();
+                });
+            });
+        });
+    </script>
 </body>
 </html>

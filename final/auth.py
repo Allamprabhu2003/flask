@@ -35,26 +35,6 @@ def login():
 
     return render_template("login.html")
 
-# @auth.route("/login", methods=["GET", "POST"])
-# def login():
-#     if request.method == "POST":
-#         email = request.form.get("email")
-#         password = request.form.get("password")
-#         user = User.query.filter_by(email=email).first()
-#         if user:
-#             if check_password_hash(user.password, password):
-#                 login_user(user)
-#                 flash("Logged in successfully.", category="success")
-#                 if user.is_admin:
-#                     return redirect(url_for("admin.index"))
-#                 else:
-#                     return redirect(url_for("views.dashboard"))
-#             else:
-#                 flash("Incorrect password. Please try again.", category="error")
-#         else:
-#             flash("Email not found. Please check your email or sign up.", category="error")
-#     return render_template("login.html", user=current_user)
-
 @auth.route("/logout")
 @login_required
 def logout():
@@ -92,7 +72,7 @@ def sign_up():
                 email=email,
                 first_name=first_name,
                 last_name=last_name,
-                password=generate_password_hash(password1, method="sha256"),
+                password=generate_password_hash(password1, method="pbkdf2:sha256"),
                 is_admin=is_teacher  # Assuming teachers are admins in your system
             )
             db.session.add(new_user)

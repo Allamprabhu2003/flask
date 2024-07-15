@@ -67,16 +67,7 @@
               {{ user.first_name }} {{ user.last_name }} can manage classes
             </label>
           </div>
-        {% endfor %} -->
-        {% for user in users %}
-          <div>
-           
-              <input type="checkbox" name="can_add_classes_{{ user.id }}" {% if user.can_add_classes %}checked{% endif %}>
-      <input type="checkbox" name="can_edit_classes_{{ user.id }}" {% if user.can_edit_classes %}checked{% endif %}>
-      <input type="checkbox" name="can_delete_classes_{{ user.id }}" {% if user.can_delete_classes %}checked{% endif %}>
-          </div>
-        {% endfor %}
-        <button type="submit">Update Permissions</button>
+        {% endfor %} -->      
       </form>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>

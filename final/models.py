@@ -2,29 +2,14 @@ from .extention import db
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin
 import datetime
+from flask_login import UserMixin
+
+from werkzeug.security import generate_password_hash, check_password_hash
 class Face(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     face_encodings = db.Column(db.PickleType, nullable=False)
 
-# class User(db.Model, UserMixin):
-#     id = db.Column(db.Integer, primary_key=True)
-#     email = db.Column(db.String(120), unique=True, nullable=False)
-#     password = db.Column(db.String(255), nullable=False)
-#     first_name = db.Column(db.String(120), nullable=False)
-#     last_name = db.Column(db.String(120), nullable=False)
-#     is_admin = db.Column(db.Boolean, default=False)
-#     classes = db.relationship('Class', secondary='class_teacher', back_populates='teachers')
-    
-#     def set_password(self, password):
-#         self.password = generate_password_hash(password, method='pbkdf2:sha256')
-    
-#     def check_password(self, password):
-#         return check_password_hash(self.password, password)
-
-
-from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -40,6 +25,8 @@ class User(db.Model, UserMixin):
     
     def set_password(self, password):
         self.password = generate_password_hash(password, method='pbkdf2:sha256')
+        print(f"Password hash: {self.password}")  # Debugging line
+
     
     def check_password(self, password):
         return check_password_hash(self.password, password)
@@ -47,7 +34,11 @@ class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(120), nullable=False)
     last_name = db.Column(db.String(120), nullable=False)
+   
+   
     email = db.Column(db.String(120), unique=True, nullable=False)
+    roll_number = db.Column(db.String(20), unique=True, nullable=False)  # New field for roll number
+
     course_type = db.Column(db.String(10), nullable=False)  # New field for course type
     face = db.relationship('Face', backref='student', uselist=False, lazy=True)
     classes = db.relationship('Class', secondary='class_student', back_populates='students')

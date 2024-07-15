@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ class_.name }} Analysis</title>
+</head>
+<body>
+    <h1>{{ class_.name }} - Analysis</h1>
+    <h2>General Statistics</h2>
+    <ul>
+        <li>Total Students: {{ class_analysis[class_.id]['total_students'] }}</li>
+        <li>Average Attendance: {{ class_analysis[class_.id]['avg_attendance']|round(2) }}</li>
+        <li>Attendance Rate: {{ class_analysis[class_.id]['attendance_rate']|round(2) }}%</li>
+    </ul>
+    <h2>Top Performers</h2>
+    <ol>
+        {% for student, count in class_analysis[class_.id]['top_students'] %}
+        <li>{{ student.first_name }} {{ student.last_name }} ({{ count }} attendances)</li>
+        {% endfor %}
+    </ol>
+    <h2>Attendance Trend (Last 7 Days)</h2>
+    <ul>
+        {% for day in recent_trend %}
+        <li>{{ day.date }}: {{ day.attendance }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Video Source</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+        }
+        .video-source-selection {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        h2 {
+            color: #333;
+        }
+        form {
+            background: #f4f4f4;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+        }
+        button {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            background: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-source-selection">
+        <h2>Change Video Source</h2>
+        <form method="POST" action="{{ url_for('face_recognition.change_video_source', class_id=class_id) }}">
+            <div>
+                <input type="radio" id="webcam" name="video_source" value="webcam" {% if session.get('video_source') == 'webcam' or not session.get('video_source') %}checked{% endif %}>
+                <label for="webcam">Webcam</label>
+            </div>
+            <div>
+                <input type="radio" id="customSource" name="video_source" value="custom" {% if session.get('video_source') and session.get('video_source') != 'webcam' %}checked{% endif %}>
+                <label for="customSource">Custom Source</label>
+            </div>
+            <input type="text" id="custom_source" name="custom_source" placeholder="Enter custom video source" {% if session.get('video_source') and session.get('video_source') != 'webcam' %}value="{{ session.get('video_source') }}"{% endif %}>
+            <button type="submit">Set Video Source</button>
+        </form>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const customSourceInput = document.getElementById('custom_source');
+            const videoSourceRadios = document.getElementsByName('video_source');
+
+            function toggleCustomSourceInput() {
+                customSourceInput.style.display = 
+                    document.getElementById('customSource').checked ? 'block' : 'none';
+            }
+
+            videoSourceRadios.forEach(radio => {
+                radio.addEventListener('change', toggleCustomSourceInput);
+            });
+
+            toggleCustomSourceInput();
+        });
+    </script>
+</body>
+</html>

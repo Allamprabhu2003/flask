@@ -1,420 +1,317 @@
-# # # import cProfile
-# # # import time
-# # # import cv2
-# # # from .models import Attendance, Class, Face, Student
-# # # from .utils import compute_face_embeding, run_face_recognition
+# import cv2
+# from .models import Attendance, Class, Student
+# from collections import defaultdict
+# from datetime import datetime, timedelta
+
+# import cv2
+# from flask_login import current_user, login_required
+# from sqlalchemy import func  # Import func from SQLAlchemy
+
+# from flask import (Blueprint, flash, redirect, render_template, url_for)
+
+# from .extention import db
+# from .models import Attendance, Class, Student
+
+# cv2.ocl.setUseOpenCL(True)
+# views = Blueprint("views", __name__)
+
+
+# @views.route("/")
+# def index():
+#     return render_template("home.html")
+
+
+# def analyze_class_data(class_data):
+#     class_analysis = defaultdict(
+#         lambda: {
+#             "total_students": 0,
+#             "total_classes": 0,
+#             "avg_attendance": 0,
+#             "top_students": [],
+#             "bottom_students": [],
+#             "recent_trend": [0] * 7,
+#             "students": [],
+#             "attendance_rate": 0,
+#         })
+
+#     class_attendance = defaultdict(lambda: defaultdict(lambda: {
+#         "present": 0,
+#         "late": 0,
+#         "absent": 0
+#     }))
+
+#     now = datetime.now()
+#     week_ago = now - timedelta(days=7)
+
+#     for class_, student, status, attendance_count, last_attendance in class_data:
+#         analysis = class_analysis[class_.id]
+#         class_attendance[class_.id][student.id][status] += attendance_count
+
+#         if student not in analysis["students"]:
+#             analysis["students"].append(student)
+#             analysis["total_students"] += 1
+
+#         analysis["total_classes"] = max(
+#             analysis["total_classes"],
+#             sum(class_attendance[class_.id][student.id].values()))
+
+#         if last_attendance and last_attendance >= week_ago:
+#             day_index = (now.date() - last_attendance.date()).days
+#             if 0 <= day_index < 7:
+#                 analysis["recent_trend"][6 - day_index] += 1
+
+#     for class_id, analysis in class_analysis.items():
+#         student_counts = [
+#             (student, sum(counts.values()))
+#             for student, counts in class_attendance[class_id].items()
+#         ]
+#         if analysis["total_students"] > 0:
+#             analysis["avg_attendance"] = sum(
+#                 count
+#                 for _, count in student_counts) / analysis["total_students"]
+
+#         analysis["top_students"] = sorted(student_counts,
+#                                           key=lambda x: x[1],
+#                                           reverse=True)[:5]
+#         analysis["bottom_students"] = sorted(student_counts,
+#                                              key=lambda x: x[1])[:3]
+
+#         if analysis["total_students"] > 0 and analysis["total_classes"] > 0:
+#             analysis["attendance_rate"] = (
+#                 sum(count for _, count in student_counts) /
+#                 (analysis["total_students"] * analysis["total_classes"])) * 100
+
+#     return class_analysis, class_attendance
+
+
+# @views.route("/dashboard")
+# @login_required
+# def dashboard():
+#     if current_user.is_admin:
+#         return redirect(url_for("admin.index"))
+
+#     teacher_classes = Class.query.filter(Class.teachers.any(id=current_user.id)).all()
+#     class_data = get_class_data(teacher_classes)
+#     class_analysis, class_attendance = analyze_class_data(class_data)
+
+#     course_types = ["BCA", "BCS", "BA"]  # Add this line
+
+#     courses_data = {}
+#     for class_ in teacher_classes:
+#         if class_.course_type not in courses_data:
+#             courses_data[class_.course_type] = {
+#                 'name': class_.course_type,
+#                 'total_students': 0
+#             }
+#         courses_data[class_.course_type]['total_students'] += db.session.query(func.count(Student.id)).filter(Student.classes.any(id=class_.id)).scalar()
+
+#     return render_template(
+#         "dashboard.html",
+#         classes=teacher_classes,
+#         class_analysis=class_analysis,
+#         class_attendance=class_attendance,
+#         course_types=course_types,  # Add this line
+#         courses_data=courses_data
+
+#     )
+
+# def get_class_data(teacher_classes):
+#     return (db.session.query(
+#         Class,
+#         Student,
+#         Attendance.status,
+#         func.count(Attendance.id).label("attendance_count"),
+#         func.max(Attendance.timestamp).label("last_attendance"),
+#     ).join(Attendance, Attendance.class_id == Class.id).join(
+#         Student, Student.id == Attendance.student_id).filter(
+#             Class.id.in_([c.id for c in teacher_classes
+#                           ])).group_by(Class.id, Student.id,
+#                                        Attendance.status).all())
+
+
+
+# # from flask import Blueprint, render_template, url_for
+# # from flask_login import current_user, login_required
+# # from sqlalchemy import func
+# # from .models import Class, Student, Attendance
+# # from .extention import db
+
+
+# # @views.route("/course/<string:course_type>/students")
+# # @login_required
+# # def student_list(course_type):
+# #     print("Trigger")
+# #     print(Student.query.join(Student.classes.).filter(course_type))
+# #     students = Student.query.join(Student.classes).filter(Class.course_type == course_type).distinct().all()
+# #     print(students)
+# #     student_data = []
+# #     for student in students:
+# #         print(student)
+# #         student_info = {
+# #             'id': student.id,
+# #             'name': f"{student.first_name} {student.last_name}",
+# #             'email': student.email,
+# #         }
+# #         student_data.append(student_info)
+    
+# #     return render_template("student_list.html", course_type=course_type, students=student_data)
+
+
+# # @views.route("/course/<string:course_type>/students")
+# # @login_required
+# # def student_list(course_type):
+# #     try:
+# #         students = Student.query.join(Student.classes).filter(Class.course_type == course_type).distinct().all()
+
+# #         if not students:
+# #             flash(f"No students found for course type '{course_type}'", "warning")
+# #             print(f"No students found for course type {course_type}")
+
+# #         student_data = []
+# #         for student in students:
+# #             student_info = {
+# #                 'id': student.id,
+# #                 'name': f"{student.first_name} {student.last_name}",
+# #                 'email': student.email,
+# #             }
+# #             student_data.append(student_info)
+        
+# #         return render_template("student_list.html", course_type=course_type, students=student_data)
+
+# #     except Exception as e:
+# #         flash(f"An error occurred while retrieving the student list: {str(e)}", "danger")
+# #         print(f"An error occurred while retrieving the student list: {str(e)}")
+# #         return redirect(url_for('views.dashboard'))
+
+
+
+# @views.route("/course/<string:course_type>/students")
+# @login_required
+# def student_list(course_type):
+#     try:
+#         # Fetch students based on the course type
+#         students = Student.query.filter_by(course_type=course_type).all()
+
+#         # Check if there are any students found
+#         if not students:
+#             flash(f"No students found for course type '{course_type}'", "warning")
+#             return redirect(url_for('views.dashboard'))
+
+#         # Prepare student data for the template
+#         student_data = []
+#         for student in students:
+#             student_info = {
+#                 'id': student.id,
+#                 'name': f"{student.first_name} {student.last_name}",
+#                 'email': student.email,
+#             }
+#             student_data.append(student_info)
+
+#         return render_template("student_list.html", course_type=course_type, students=student_data)
+
+#     except Exception as e:
+#         flash(f"An error occurred while retrieving the student list: {str(e)}", "danger")
+#         return redirect(url_for('views.dashboard'))
+
+
+
+
+
+
+
+
+# # @views.route("/course/<string:course_type>/students")
+# # @login_required
+# # def student_list(course_type):
+#     # Check if the current user teaches any class of this course type
+#     # teacher_classes = Class.query.filter(Class.teachers.any(id=current_user.id), Class.course_type == course_type).all()
+#     # if not teacher_classes:
+#     #     abort(403)  # Forbidden
+    
+#     # students = Student.query.join(Student.classes).filter(Class.course_type == course_type).distinct().all()
+    
+#     # student_data = []
+#     # for student in students:
+#     #     # Calculate attendance across all classes of this course type
+#     #     attendance_count = Attendance.query.join(Class).filter(
+#     #         Attendance.student_id == student.id,
+#     #         Class.course_type == course_type
+#     #     ).count()
+        
+#     #     # total_sessions = sum(class_.total_sessions for class_ in teacher_classes)
+#     #     # attendance_rate = (attendance_count / total_sessions) * 100 if total_sessions > 0 else 0
+        
+#     #     student_info = {s
+#     #         'id': student.id,
+#     #         'name': student.first_name,
+#     #         'email': student.email,
+#     #         # 'attendance_count': attendance_count,
+#     #         # 'attendance_rate': round(attendance_rate, 2)
+#     #     }
+#     #     student_data.append(student_info)
+    
+#     # return render_template("student_list.html", course_type=course_type, students=student_data)
+    
+    
+    
+    
+#     from flask import send_file
+# from io import BytesIO
+# import pdfkit
+
+# @views.route('/download_pdf/<int:class_id>')
+# @login_required
+# def download_pdf(class_id):
+#     class_ = Class.query.get_or_404(class_id)
+#     rendered = render_template('pdf_template.html', class_=class_)
+#     pdf = pdfkit.from_string(rendered, False)
+
+#     response = make_response(pdf)
+#     response.headers['Content-Type'] = 'application/pdf'
+#     response.headers['Content-Disposition'] = f'attachment; filename={class_.name}_analysis.pdf'
+#     return response
+
+
+# import csv
+
+# @views.route('/download_csv/<int:class_id>')
+# @login_required
+# def download_csv(class_id):
+#     class_ = Class.query.get_or_404(class_id)
+#     attendance_data = get_attendance_data(class_id)  # Fetch your attendance data here
+
+#     si = BytesIO()
+#     cw = csv.writer(si)
+#     cw.writerow(['Student Name', 'Present', 'Late', 'Absent'])  # Add your CSV header here
+#     for student in attendance_data:
+#         cw.writerow([student.name, student.present, student.late, student.absent])  # Add your CSV data here
+
+#     response = make_response(si.getvalue())
+#     response.headers['Content-Disposition'] = f'attachment; filename={class_.name}_attendance.csv'
+#     response.headers['Content-type'] = 'text/csv'
+#     return response
+
+import csv
 from collections import defaultdict
 from datetime import datetime, timedelta
+from io import BytesIO
 
-# # # import numpy as np
 import cv2
+import pdfkit
+from flask import (Blueprint, flash, make_response, redirect, render_template,
+                   url_for)
 from flask_login import current_user, login_required
 from sqlalchemy import func  # Import func from SQLAlchemy
 
-from flask import (Blueprint, Response, current_app, flash, g, jsonify,
-                   redirect, render_template, request, stream_with_context,
-                   url_for)
-
 from .extention import db
-from .models import Attendance, Class, Face, Student, User
+from .models import Attendance, Class, Student
 
 cv2.ocl.setUseOpenCL(True)
 views = Blueprint("views", __name__)
 
-# # # # @views.route("/register_student", methods=["GET", "POST"])
-# # # # @login_required
-# # # # def register_student():
-# # # #     if request.method == "POST":
-# # # #         first_name = request.form.get("first_name")
-# # # #         last_name = request.form.get("last_name")
-# # # #         email = request.form.get("email")
-
-# # # #         # Check if a student with this email already exists
-# # # #         existing_student = Student.query.filter_by(email=email).first()
-# # # #         if existing_student:
-# # # #             flash("A student with this email already exists.", "error")
-# # # #             return redirect(url_for("views.register_student"))
-
-# # # #         new_student = Student(first_name=first_name, last_name=last_name, email=email)
-# # # #         db.session.add(new_student)
-# # # #         db.session.commit()
-
-# # # #         flash("Student registered successfully. You can now upload their face image.", "success")
-# # # #         return redirect(url_for("views.upload_face", student_id=new_student.id))
-
-# # # #     return render_template("register_student.html")
-
-# # # @views.route("/student/<int:student_id>/edit", methods=["GET", "POST"])
-# # # @login_required
-# # # def edit_student(student_id):
-# # #     student = Student.query.get_or_404(student_id)
-
-# # #     if request.method == "POST":
-# # #         student.first_name = request.form.get("first_name")
-# # #         student.last_name = request.form.get("last_name")
-# # #         student.email = request.form.get("email")
-# # #         db.session.commit()
-# # #         flash("Student information updated successfully", "success")
-# # #         return redirect(url_for("views.dashboard"))
-
-# # #     return render_template("edit_student.html", student=student)
-
-# # @views.route("/delete_class/<int:class_id>", methods=["POST"])
-# # @login_required
-# # def delete_class(class_id):
-# #     class_ = Class.query.get_or_404(class_id)
-
-# #     if current_user not in class_.teachers:
-# #         flash("You do not have permission to delete this class", "danger")
-# #         return redirect(url_for("views.dashboard"))
-
-# #     db.session.delete(class_)
-# #     db.session.commit()
-# #     flash(f"Class '{class_.name}' has been deleted.", "success")
-
-# #     return redirect(url_for('views.dashboard'))
-
-# # @views.route("/delete_student_face/<int:student_id>", methods=["POST"])
-# # @login_required
-# # def delete_student_face(student_id):
-# #     student = Student.query.get_or_404(student_id)
-# #     face = Face.query.filter_by(student_id=student_id).first()
-
-# #     if face:
-# #         db.session.delete(face)
-# #         db.session.commit()
-# #         flash(f"Face data for {student.first_name} {student.last_name} has been deleted.", "success")
-# #     else:
-# #         flash(f"No face data found for {student.first_name} {student.last_name}.", "warning")
-
-# #     return redirect(url_for('views.dashboard'))
-
-# # @views.route("/edit_student/<int:student_id>", methods=["GET", "POST"])
-# # @login_required
-# # def edit_student(student_id):
-# #     student = Student.query.get_or_404(student_id)
-
-# #     if request.method == "POST":
-# #         student.first_name = request.form.get("first_name")
-# #         student.last_name = request.form.get("last_name")
-# #         student.email = request.form.get("email")
-
-# #         db.session.commit()
-# #         flash(f"Details for {student.first_name} {student.last_name} have been updated.", "success")
-# #         return redirect(url_for('views.dashboard'))
-
-# #     return render_template("edit_student.html", student=student)
-
-# # # @views.route("/class/<int:class_id>/attendance_records")
-# # # @login_required
-# # # def attendance_records(class_id):
-# # #     class_ = Class.query.get_or_404(class_id)
-# # #     if current_user not in class_.teachers:
-# # #         return redirect(url_for("views.dashboard"))
-# # #     attendance_records = Attendance.query.filter_by(class_id=class_id).all()
-# # #     return jsonify([
-# # #         {
-# # #             "student_name": f"{record.student.first_name} {record.student.last_name}",
-# # #             "timestamp": record.timestamp.strftime("%Y-%m-%d %H:%M:%S"),
-# # #             "status": record.status
-# # #         }
-# # #         for record in attendance_records
-# # #     ])
-
-# # from datetime import timezone
-
-# # @views.route("/class/<int:class_id>/attendance_records")
-# # @login_required
-# # def attendance_records(class_id):
-# #     class_ = Class.query.get_or_404(class_id)
-# #     if current_user not in class_.teachers:
-# #         return redirect(url_for("views.dashboard"))
-
-# #     attendance_records = Attendance.query.filter_by(class_id=class_id).all()
-
-# #     records = []
-# #     for record in attendance_records:
-# #         student = Student.query.get(record.student_id)
-# #         student_name = f"{student.first_name} {student.last_name}"
-
-# #         timestamp = record.timestamp.replace(tzinfo=timezone.utc).isoformat()  # Ensure UTC time
-
-# #         # timestamp = record.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-# #         records.append({"student_name": student_name, "timestamp": timestamp})
-
-# #     return jsonify(records)
-
-# # # Clear face data cache before each request
-# # @views.before_request
-# # def clear_face_data_cache():
-# #     if hasattr(g, 'face_data'):
-# #         delattr(g, 'face_data')
-
-# # @views.route("/delete_face_embedding/<int:student_id>", methods=["POST"])
-# # @login_required
-# # def delete_face_embedding(student_id):
-# #     student = Student.query.get_or_404(student_id)
-# #     face = Face.query.filter_by(student_id=student_id).first()
-
-# #     if face:
-# #         db.session.delete(face)
-# #         db.session.commit()
-# #         flash(f"Face embedding for {student.first_name} {student.last_name} has been deleted.", "success")
-# #     else:
-# #         flash(f"No face embedding found for {student.first_name} {student.last_name}.", "warning")
-
-# #     return redirect(url_for('views.dashboard'))
-
-# cv2.setUseOptimized(True)
-# cv2.ocl.setUseOpenCL(True)
-
-# # compute_face_embeding,
-# from sqlalchemy import func
-# from . import db
-# from .models import Attendance, Class, Face, Student, User
-# from collections import defaultdict
-# from datetime import datetime, timedelta
-
-views = Blueprint("views", __name__)
-
-# def admin_required(f):
-#     @wraps(f)
-#     def decorated_function(*args, **kwargs):
-#         if not current_user.is_admin:
-#             flash("You need admin privileges to access this page.", "error")
-#             return redirect(url_for('views.dashboard'))
-#         return f(*args, **kwargs)
-#     return decorated_function
-
-
 @views.route("/")
 def index():
     return render_template("home.html")
-
-
-# # @views.route("/upload", methods=["POST", "GET"])
-# # @login_required
-# # def upload():
-# #     if request.method == "POST":
-# #         first_name = request.form["first_name"]
-# #         last_name = request.form["last_name"]
-# #         email = request.form["email"]
-# #         image_file = request.files["image"]
-# #         try:
-# #             student = Student.query.filter_by(email=email).first()
-# #             if not student:
-# #                 student = Student(
-# #                     first_name=first_name, last_name=last_name, email=email
-# #                 )
-# #                 db.session.add(student)
-# #                 db.session.flush()
-
-# #             # Read the image file
-# #             image_array = np.frombuffer(image_file.read(), np.uint8)
-# #             image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-
-# #             # Convert the image to RGB (dlib expects RGB images)
-# #             rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-# #             # Detect faces in the image
-# #             face_locations = face_detector(rgb_image)
-
-# #             if not face_locations:
-# #                 flash("No face detected in the image. Please try again.", "error")
-# #                 return redirect(url_for("views.upload"))
-
-# #             # Compute face encodings
-# #             face_encodings = compute_face_encodings(rgb_image, face_locations)
-
-# #             if len(face_encodings) == 0:
-# #                 flash("Failed to compute face encodings. Please try again.", "error")
-# #                 return redirect(url_for("views.upload"))
-
-# #             # Use the first face encoding if multiple faces are detected
-# #             face_encoding = face_encodings[0]
-
-# #             face = Face.query.filter_by(student_id=student.id).first()
-# #             if face:
-# #                 face.face_encodings = face_encoding.tobytes()
-# #             else:
-# #                 face = Face(
-# #                     student_id=student.id, face_encodings=face_encoding.tobytes()
-# #                 )
-# #                 db.session.add(face)
-
-# #             db.session.commit()
-# #             flash("Student registered and face uploaded successfully", "success")
-# #             return redirect(url_for("views.dashboard"))
-# #         except Exception as e:
-# #             db.session.rollback()
-# #             flash(f"An error occurred: {str(e)}", "error")
-# #             return redirect(url_for("views.upload"))
-# #     return render_template("upload.html")
-
-# # @views.route("/upload", methods=["POST", "GET"])
-# # @login_required
-# # def upload():
-# #     course_types = ["BCA", "BCS", "BA"]  # Define the course types
-
-# #     if request.method == "POST":
-# #         first_name = request.form["first_name"]
-# #         last_name = request.form["last_name"]
-# #         email = request.form["email"]
-# #         course_type = request.form["course_type"]
-# #         new_course_type = request.form.get("new_course_type")
-# #         image_file = request.files["image"]
-
-# #         if new_course_type:
-# #             course_type = new_course_type
-# #             if course_type not in course_types:
-# #                 course_types.append(course_type)
-
-# #         try:
-# #             student = Student.query.filter_by(email=email).first()
-# #             if not student:
-# #                 student = Student(
-# #                     first_name=first_name,
-# #                     last_name=last_name,
-# #                     email=email,
-# #                     course_type=course_type
-# #                 )
-# #                 db.session.add(student)
-# #                 db.session.flush()
-
-# #             # Read the image file
-# #             image_array = np.frombuffer(image_file.read(), np.uint8)
-# #             image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-
-# #             # Convert the image to RGB (dlib expects RGB images)
-# #             rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-# #             # Detect faces in the image
-# #             face_locations = face_detector(rgb_image)
-
-# #             if not face_locations:
-# #                 flash("No face detected in the image. Please try again.", "error")
-# #                 return redirect(url_for("views.upload"))
-
-# #             # Compute face encodings
-# #             face_encodings = compute_face_encodings(rgb_image, face_locations)
-
-# #             if len(face_encodings) == 0:
-# #                 flash("Failed to compute face encodings. Please try again.", "error")
-# #                 return redirect(url_for("views.upload"))
-
-# #             # Use the first face encoding if multiple faces are detected
-# #             face_encoding = face_encodings[0]
-
-# #             face = Face.query.filter_by(student_id=student.id).first()
-# #             if face:
-# #                 face.face_encodings = face_encoding.tobytes()
-# #             else:
-# #                 face = Face(
-# #                     student_id=student.id, face_encodings=face_encoding.tobytes()
-# #                 )
-# #                 db.session.add(face)
-
-# #             # Create or update the class
-# #             class_ = Class.query.filter_by(name=course_type, course_type=course_type).first()
-# #             if not class_:
-# #                 class_ = Class(name=course_type, course_type=course_type)
-# #                 db.session.add(class_)
-
-# #             if student not in class_.students:
-# #                 class_.students.append(student)
-
-# #             db.session.commit()
-# #             flash("Student registered and face uploaded successfully", "success")
-# #             return redirect(url_for("views.dashboard"))
-# #         except Exception as e:
-# #             db.session.rollback()
-# #             flash(f"An error occurred: {str(e)}", "error")
-# #             return redirect(url_for("views.upload"))
-
-# #     return render_template("upload.html", course_types=course_types)
-
-# @views.route("/upload", methods=["POST", "GET"])
-# @login_required
-# def upload():
-#     course_types = ["BCA", "BCS", "BA"]  # Define the course types
-
-#     if request.method == "POST":
-#         first_name = request.form["first_name"]
-#         last_name = request.form["last_name"]
-#         email = request.form["email"]
-#         course_type = request.form["course_type"]
-#         new_course_type = request.form.get("new_course_type")
-#         image_file = request.files["image"]
-
-#         if new_course_type:
-#             course_type = new_course_type
-#             if course_type not in course_types:
-#                 course_types.append(course_type)
-
-#         try:
-#             student = Student.query.filter_by(email=email).first()
-#             if not student:
-#                 student = Student(
-#                     first_name=first_name,
-#                     last_name=last_name,
-#                     email=email,
-#                     course_type=course_type
-#                 )
-#                 db.session.add(student)
-#                 db.session.flush()
-
-#             # Read the image file
-#             image_array = np.frombuffer(image_file.read(), np.uint8)
-#             image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-
-#             # Convert the image to RGB (dlib expects RGB images)
-#             rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-#             # Detect faces in the image
-#             face_locations = face_detector(rgb_image)
-
-#             if not face_locations:
-#                 flash("No face detected in the image. Please try again.", "error")
-#                 return redirect(url_for("views.upload"))
-
-#             # Compute face encodings
-#             face_encodings = compute_face_encodings(rgb_image, face_locations)
-
-#             if len(face_encodings) == 0:
-#                 flash("Failed to compute face encodings. Please try again.", "error")
-#                 return redirect(url_for("views.upload"))
-
-#             # Use the first face encoding if multiple faces are detected
-#             face_encoding = face_encodings[0]
-
-#             face = Face.query.filter_by(student_id=student.id).first()
-#             if face:
-#                 face.face_encodings = face_encoding.tobytes()
-#             else:
-#                 face = Face(
-#                     student_id=student.id, face_encodings=face_encoding.tobytes()
-#                 )
-#                 db.session.add(face)
-
-#             # Create or update the class
-#             class_ = Class.query.filter_by(name=course_type, course_type=course_type).first()
-#             if not class_:
-#                 class_ = Class(name=course_type, course_type=course_type)
-#                 db.session.add(class_)
-
-#             if student not in class_.students:
-#                 class_.students.append(student)
-
-#             db.session.commit()
-#             flash("Student registered and face uploaded successfully", "success")
-#             return redirect(url_for("views.dashboard"))
-#         except Exception as e:
-#             db.session.rollback()
-#             flash(f"An error occurred: {str(e)}", "error")
-#             return redirect(url_for("views.upload"))
-
-#     return render_template("upload.html", course_types=course_types)
-
 
 def analyze_class_data(class_data):
     class_analysis = defaultdict(
@@ -478,19 +375,35 @@ def analyze_class_data(class_data):
 
     return class_analysis, class_attendance
 
-
-# @views.route("/class/<int:class_id>/attendance")
+# @views.route("/dashboard")
 # @login_required
-# def class_attendance(class_id):
-#     class_ = Class.query.get_or_404(class_id)
-#     if current_user not in class_.teachers:
-#         return redirect(url_for("views.dashboard"))
-#     attendance_records = Attendance.query.filter_by(class_id=class_id).all()
-#     print(attendance_records)
-#     return render_template(
-#         "class_attendance.html", class_=class_, attendance_records=attendance_records
-#     )
+# def dashboard():
+#     if current_user.is_admin:
+#         return redirect(url_for("admin.index"))
 
+#     teacher_classes = Class.query.filter(Class.teachers.any(id=current_user.id)).all()
+#     class_data = get_class_data(teacher_classes)
+#     class_analysis, class_attendance = analyze_class_data(class_data)
+
+#     course_types = ["BCA", "BCS", "BA"]
+
+#     courses_data = {}
+#     for class_ in teacher_classes:
+#         if class_.course_type not in courses_data:
+#             courses_data[class_.course_type] = {
+#                 'name': class_.course_type,
+#                 'total_students': 0
+#             }
+#         courses_data[class_.course_type]['total_students'] += db.session.query(func.count(Student.id)).filter(Student.classes.any(id=class_.id)).scalar()
+
+#     return render_template(
+#         "dashboard.html",
+#         classes=teacher_classes,
+#         class_analysis=class_analysis,
+#         class_attendance=class_attendance,
+#         course_types=course_types,
+#         courses_data=courses_data
+#     )
 
 @views.route("/dashboard")
 @login_required
@@ -498,158 +411,30 @@ def dashboard():
     if current_user.is_admin:
         return redirect(url_for("admin.index"))
 
-    teacher_classes = Class.query.filter(
-        Class.teachers.any(id=current_user.id)).all()
+    teacher_classes = Class.query.filter(Class.teachers.any(id=current_user.id)).all()
     class_data = get_class_data(teacher_classes)
     class_analysis, class_attendance = analyze_class_data(class_data)
 
-    course_types = ["BCA", "BCS", "BA"]  # Add this line
+    course_types = ["BCA", "BCS", "BA"]
+
+    courses_data = {}
+    for class_ in teacher_classes:
+        if class_.course_type not in courses_data:
+            courses_data[class_.course_type] = {
+                'name': class_.course_type,
+                'total_students': 0
+            }
+        courses_data[class_.course_type]['total_students'] += db.session.query(func.count(Student.id)).filter(Student.classes.any(id=class_.id)).scalar()
 
     return render_template(
         "dashboard.html",
         classes=teacher_classes,
         class_analysis=class_analysis,
         class_attendance=class_attendance,
-        course_types=course_types  # Add this line
+        course_types=course_types,
+        courses_data=courses_data
     )
 
-
-# @views.route("/class/<int:class_id>/edit", methods=["GET", "POST"])
-# @login_required
-# def edit_class(class_id):
-#     class_ = Class.query.get_or_404(class_id)
-#     if current_user not in class_.teachers:
-#         flash("You do not have permission to edit this class", "danger")
-#         return redirect(url_for("views.dashboard"))
-
-#     if request.method == "POST":
-#         class_.name = request.form.get("class_name")
-#         db.session.commit()
-#         flash("Class updated successfully", "success")
-#         return redirect(url_for("views.dashboard"))
-
-#     return render_template("edit_class.html", class_=class_)
-
-# # @views.route("/class/add", methods=["GET", "POST"])
-# # @login_required
-# # # @admin_required
-# # # def add_class():
-
-# #     if request.method == "POST":
-# #         class_name = request.form.get("class_name")
-# #         new_class = Class(name=class_name)
-# #         new_class.teachers.append(current_user)
-# #         db.session.add(new_class)
-# #         db.session.commit()
-# #         flash("Class created successfully", "success")
-# #         print("Class created successfully")
-# #         return redirect(url_for("views.dashboard"))
-# #     return render_template("add_class.html")
-
-# @views.route("/class/add", methods=["GET", "POST"])
-# @login_required
-# def add_class():
-#     course_types = ["BCA", "BCS", "BA"]
-#     if request.method == "POST":
-#         class_name = request.form.get("class_name")
-#         course_type = request.form.get("course_type")
-#         new_class = Class(name=class_name, course_type=course_type)
-#         new_class.teachers.append(current_user)
-#         db.session.add(new_class)
-#         db.session.commit()
-#         flash("Class created successfully", "success")
-#         return redirect(url_for("views.dashboard"))
-
-#     return render_template("dashboard.html", course_types=course_types)
-
-# @views.route("/register_student", methods=["GET", "POST"])
-# @login_required
-# @admin_required
-# def register_student():
-#     if request.method == "POST":
-#         first_name = request.form.get("first_name")
-#         last_name = request.form.get("last_name")
-#         email = request.form.get("email")
-
-#         existing_student = Student.query.filter_by(email=email).first()
-#         if existing_student:
-#             flash("A student with this email already exists.", "error")
-#             return redirect(url_for("views.register_student"))
-
-#         new_student = Student(first_name=first_name, last_name=last_name, email=email)
-#         db.session.add(new_student)
-#         db.session.commit()
-
-#         flash("Student registered successfully. You can now upload their face image.", "success")
-
-#         return redirect(url_for("views.upload_face", student_id=new_student.id))
-
-#     return render_template("register_student.html")
-
-# @views.route("/delete_student_face/<int:student_id>", methods=["POST"])
-# @login_required
-# def delete_student_face(student_id):
-#     student = Student.query.get_or_404(student_id)
-#     face = Face.query.filter_by(student_id=student_id).first()
-
-#     if face:
-#         db.session.delete(face)
-#         db.session.commit()
-#         flash(
-#             f"Face data for {student.first_name} {student.last_name} has been deleted.",
-#             "success",
-#         )
-#     else:
-#         flash(
-#             f"No face data found for {student.first_name} {student.last_name}.",
-#             "warning",
-#         )
-
-#     return redirect(url_for("views.dashboard"))
-
-# @views.route("/edit_student/<int:student_id>", methods=["GET", "POST"])
-# @login_required
-# def edit_student(student_id):
-#     student = Student.query.get_or_404(student_id)
-
-#     if request.method == "POST":
-#         student.first_name = request.form.get("first_name")
-#         student.last_name = request.form.get("last_name")
-#         student.email = request.form.get("email")
-
-#         db.session.commit()
-#         flash(
-#             f"Details for {student.first_name} {student.last_name} have been updated.",
-#             "success",
-#         )
-#         return redirect(url_for("views.dashboard"))
-
-#     return render_template("edit_student.html", student=student)
-
-# from datetime import timezone
-
-# @views.route("/class/<int:class_id>/attendance_records")
-# @login_required
-# def attendance_records(class_id):
-#     class_ = Class.query.get_or_404(class_id)
-#     if current_user not in class_.teachers:
-#         return redirect(url_for("views.dashboard"))
-
-#     attendance_records = Attendance.query.filter_by(class_id=class_id).all()
-
-#     records = []
-#     for record in attendance_records:
-#         student = Student.query.get(record.student_id)
-#         student_name = f"{student.first_name} {student.last_name}"
-
-#         timestamp = record.timestamp.replace(
-#             tzinfo=timezone.utc
-#         ).isoformat()  # Ensure UTC time
-
-#         # timestamp = record.timestamp.strftime("%Y-%m-%d %H:%M:%S")
-#         records.append({"student_name": student_name, "timestamp": timestamp})
-
-#     return jsonify(records)
 
 
 def get_class_data(teacher_classes):
@@ -661,128 +446,390 @@ def get_class_data(teacher_classes):
         func.max(Attendance.timestamp).label("last_attendance"),
     ).join(Attendance, Attendance.class_id == Class.id).join(
         Student, Student.id == Attendance.student_id).filter(
-            Class.id.in_([c.id for c in teacher_classes
-                          ])).group_by(Class.id, Student.id,
-                                       Attendance.status).all())
+            Class.id.in_([c.id for c in teacher_classes])
+    ).group_by(Class.id, Student.id, Attendance.status).all())
 
+@views.route("/course/<string:course_type>/students")
+@login_required
+def student_list(course_type):
+    try:
+        students = Student.query.join(Student.classes).filter(Class.course_type == course_type).distinct().all()
 
-# # @views.route("/upload_face/<int:student_id>", methods=["GET", "POST"])
-# # @login_required
-# # def upload_face(student_id):
-# #     student = Student.query.get_or_404(student_id)
+        if not students:
+            flash(f"No students found for course type '{course_type}'", "warning")
+            return redirect(url_for('views.dashboard'))
 
-# #     if request.method == "POST":
-# #         if "image" not in request.files:
-# #             flash("No file part", "error")
-# #             return redirect(request.url)
+        student_data = []
+        for student in students:
+            student_info = {
+                'id': student.id,
+                'name': f"{student.first_name} {student.last_name}",
+                'email': student.email,
+            }
+            student_data.append(student_info)
 
-# #         file = request.files["image"]
+        return render_template("student_list.html", course_type=course_type, students=student_data)
 
-# #         if file.filename == "":
-# #             flash("No selected file", "error")
-# #             return redirect(request.url)
+    except Exception as e:
+        flash(f"An error occurred while retrieving the student list: {str(e)}", "danger")
+        return redirect(url_for('views.dashboard'))
 
-# #         if file:
-# #             try:
-# #                 image = cv2.imdecode(
-# #                     np.frombuffer(file.read(), np.uint8), cv2.IMREAD_COLOR
-# #                 )
-# #                 face_encodings = compute_face_embedding(image)
-# #                 # face_encodings = compute_face_descriptor(image)
-
-# #                 if face_encodings is None:
-# #                     flash("No face detected in the image. Please try again.", "error")
-# #                     return redirect(request.url)
-
-# #                 existing_face = Face.query.filter_by(student_id=student.id).first()
-# #                 if existing_face:
-# #                     existing_face.face_encodings = face_encodings.tobytes()
-# #                 else:
-# #                     new_face = Face(
-# #                         student_id=student.id, face_encodings=face_encodings.tobytes()
-# #                     )
-# #                     db.session.add(new_face)
-
-# #                 db.session.commit()
-# #                 flash("Face image uploaded successfully", "success")
-# #                 return redirect(url_for("views.dashboard"))
-# #             except Exception as e:
-# #                 flash(f"Error processing image: {str(e)}", "error")
-# #                 return redirect(request.url)
-
-# #     return render_template("upload_face.html", student=student)
-
-# # from multiprocessing import Pool
-
-# # def encode_frame(frame):
-# #     return cv2.imencode('.jpg', frame, [cv2.IMWRITE_JPEG_QUALITY, 50])[1].tobytes()
-
-# # # Initialize the pool outside your main loop
-# # pool = Pool(processes=4)  # Adjust based on your CPU cores
-
-# def update_attendance(recognized_names, class_id):
-#     with current_app.app_context():
-#         class_ = Class.query.get(class_id)
-#         print(class_)
-#         if not class_:
-#             print(class_)
-#             flash("Class not found", "error")
-#             return
-
-#         for name in set(recognized_names):  # Use set to avoid duplicates
-#             student = Student.query.filter_by(first_name=name).first()
-
-#             print(student)
-#             if student and student in class_.students:
-#                 # Check if attendance already exists for today
-#                 existing_attendance = Attendance.query.filter(
-#                     Attendance.student_id == student.id,
-#                     Attendance.class_id == class_id,
-#                     func.date(Attendance.timestamp) == func.current_date()
-#                 ).first()
-
-#                 if not existing_attendance:
-#                     attendance = Attendance(
-#                         student_id=student.id,
-#                         class_id=class_id,
-#                         status="present"
-#                     )
-#                     db.session.add(attendance)
-#                     flash(f"Attendance marked for {student.first_name} {student.last_name}", "success")
-#                 else:
-#                     flash(f"Attendance already marked for {student.first_name} {student.last_name}", "info")
-#             elif student:
-#                 print("Not from this class ")
-#                 flash(f"{student.first_name} {student.last_name} is not a member of this class", "warning")
-#             else:
-#                 flash(f"Student {name} not found in the database", "warning")
-#                 print(f"Student {name} not found in the database")
-
-#         db.session.commit()
-
-# # Clear face data cache before each request
-# @views.before_request
-# def clear_face_data_cache():
-#     if hasattr(g, "face_data"):
-#         delattr(g, "face_data")
-
-# @views.route("/delete_face_embedding/<int:student_id>", methods=["POST"])
+# @views.route('/download_pdf/<int:class_id>')
 # @login_required
-# def delete_face_embedding(student_id):
-#     student = Student.query.get_or_404(student_id)
-#     face = Face.query.filter_by(student_id=student_id).first()
+# def download_pdf(class_id):
+#     class_ = Class.query.get_or_404(class_id)
+#     rendered = render_template('pdf_template.html', class_=class_)
+#     pdf = pdfkit.from_string(rendered, False)
 
-#     if face:
-#         db.session.delete(face)
-#         db.session.commit()
-#         flash(
-#             f"Face embedding for {student.first_name} {student.last_name} has been deleted.",
-#             "success",
-#         )
-#     else:
-#         flash(
-#             f"No face embedding found for {student.first_name} {student.last_name}.",
-#             "warning",
-#         )
+#     response = make_response(pdf)
+#     response.headers['Content-Type'] = 'application/pdf'
+#     response.headers['Content-Disposition'] = f'attachment; filename={class_.name}_analysis.pdf'
+#     return response
 
-#     return redirect(url_for("views.dashboard"))
+
+# @views.route('/download_pdf/<int:class_id>')
+# @login_required
+# def download_pdf(class_id):
+#     class_ = Class.query.get_or_404(class_id)
+    
+#     # Get the class data and analyze it
+#     class_data = get_class_data([class_])
+#     class_analysis, _ = analyze_class_data(class_data)
+    
+#     # Prepare the recent trend data
+#     recent_trend = {
+#         (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d'): class_analysis[class_.id]['recent_trend'][6-i]
+#         for i in range(7)
+#     }
+    
+#     rendered = render_template('pdf_template.html', 
+#                                class_=class_, 
+#                                class_analysis=class_analysis,
+#                                recent_trend=recent_trend)
+#     pdf = pdfkit.from_string(rendered, False)
+
+#     response = make_response(pdf)
+#     response.headers['Content-Type'] = 'application/pdf'
+#     response.headers['Content-Disposition'] = f'attachment; filename={class_.name}_analysis.pdf'
+#     return response
+
+
+from io import BytesIO
+
+from flask import send_file
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Table, TableStyle
+
+from .models import Student  # Make sure to import the Student model
+
+from io import BytesIO
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Image
+from reportlab.lib.styles import getSampleStyleSheet
+from .models import Student
+import matplotlib.pyplot as plt
+import numpy as np
+
+@views.route('/download_pdf/<int:class_id>')
+@login_required
+def download_pdf(class_id):
+    class_ = Class.query.get_or_404(class_id)
+    
+    # Get the class data and analyze it
+    class_data = get_class_data([class_])
+    class_analysis, class_attendance = analyze_class_data(class_data)
+    
+    # Create a file-like buffer to receive PDF data
+    buffer = BytesIO()
+
+    # Create the PDF object, using the buffer as its "file."
+    doc = SimpleDocTemplate(buffer, pagesize=landscape(letter))
+
+    # Create the elements to add to the PDF
+    elements = []
+    styles = getSampleStyleSheet()
+
+    # Add title
+    elements.append(Paragraph(f"{class_.name} - Analysis", styles['Title']))
+
+    # Add general statistics
+    elements.append(Paragraph("General Statistics", styles['Heading2']))
+    general_stats = [
+        ["Total Students", str(class_analysis[class_.id]['total_students'])],
+        ["Average Attendance", f"{class_analysis[class_.id]['avg_attendance']:.2f}"],
+        ["Attendance Rate", f"{class_analysis[class_.id]['attendance_rate']:.2f}%"]
+    ]
+    t = Table(general_stats)
+    t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                           ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                           ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                           ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                           ('FONTSIZE', (0, 0), (-1, 0), 14),
+                           ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                           ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                           ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                           ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                           ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                           ('FONTSIZE', (0, 1), (-1, -1), 12),
+                           ('TOPPADDING', (0, 1), (-1, -1), 6),
+                           ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+                           ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
+    elements.append(t)
+
+    # Add top performers
+    elements.append(Paragraph("Top Performers", styles['Heading2']))
+    top_performers = [["Student", "Attendances"]]
+    for student_id, count in class_analysis[class_.id]['top_students']:
+        student = Student.query.get(student_id)
+        if student:
+            top_performers.append([f"{student.first_name} {student.last_name}", str(count)])
+    t = Table(top_performers)
+    t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                           ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                           ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                           ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                           ('FONTSIZE', (0, 0), (-1, 0), 14),
+                           ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                           ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                           ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                           ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                           ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                           ('FONTSIZE', (0, 1), (-1, -1), 12),
+                           ('TOPPADDING', (0, 1), (-1, -1), 6),
+                           ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+                           ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
+    elements.append(t)
+
+    # Add attendance trend chart
+    elements.append(Paragraph("Attendance Trend (Last 7 Days)", styles['Heading2']))
+    
+    # Create the chart using matplotlib
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(7), class_analysis[class_.id]['recent_trend'], marker='o')
+    plt.title('Attendance Trend (Last 7 Days)')
+    plt.xlabel('Days Ago')
+    plt.ylabel('Attendance Count')
+    plt.xticks(range(7), ['7', '6', '5', '4', '3', '2', '1'])
+    plt.grid(True)
+    
+    # Save the chart to a BytesIO object
+    chart_buffer = BytesIO()
+    plt.savefig(chart_buffer, format='png')
+    chart_buffer.seek(0)
+    
+    # Add the chart to the PDF
+    chart_image = Image(chart_buffer)
+    chart_image.drawHeight = 300
+    chart_image.drawWidth = 500
+    elements.append(chart_image)
+
+    # Add attendance details
+    elements.append(Paragraph("Attendance Details", styles['Heading2']))
+    attendance_data = [["Student", "Present", "Late", "Absent"]]
+    for student_id, counts in class_attendance[class_.id].items():
+        student = Student.query.get(student_id)
+        if student:
+            attendance_data.append([
+                f"{student.first_name} {student.last_name}",
+                str(counts['present']),
+                str(counts['late']),
+                str(counts['absent'])
+            ])
+    t = Table(attendance_data)
+    t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                           ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                           ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                           ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                           ('FONTSIZE', (0, 0), (-1, 0), 14),
+                           ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                           ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                           ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+                           ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                           ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+                           ('FONTSIZE', (0, 1), (-1, -1), 12),
+                           ('TOPPADDING', (0, 1), (-1, -1), 6),
+                           ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+                           ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
+    elements.append(t)
+
+    # Build the PDF
+    doc.build(elements)
+
+    # FileResponse sets the Content-Disposition header so that browsers
+    # present the option to save the file.
+    buffer.seek(0)
+    return send_file(buffer, as_attachment=True, download_name=f'{class_.name}_analysis.pdf', mimetype='application/pdf')
+
+
+# @views.route('/download_pdf/<int:class_id>')
+# @login_required
+# def download_pdf(class_id):
+#     class_ = Class.query.get_or_404(class_id)
+    
+#     # Get the class data and analyze it
+#     class_data = get_class_data([class_])
+#     class_analysis, _ = analyze_class_data(class_data)
+    
+#     # Prepare the recent trend data
+#     recent_trend = [
+#         [
+#             (datetime.now() - timedelta(days=i)).strftime('%Y-%m-%d'),
+#             class_analysis[class_.id]['recent_trend'][6-i]
+#         ]
+#         for i in range(7)
+#     ]
+
+#     # Create a file-like buffer to receive PDF data
+#     buffer = BytesIO()
+
+#     # Create the PDF object, using the buffer as its "file."
+#     doc = SimpleDocTemplate(buffer, pagesize=letter)
+
+#     # Create the elements to add to the PDF
+#     elements = []
+#     styles = getSampleStyleSheet()
+
+#     # Add title
+#     elements.append(Paragraph(f"{class_.name} - Analysis", styles['Title']))
+
+#     # Add general statistics
+#     elements.append(Paragraph("General Statistics", styles['Heading2']))
+#     general_stats = [
+#         ["Total Students", str(class_analysis[class_.id]['total_students'])],
+#         ["Average Attendance", f"{class_analysis[class_.id]['avg_attendance']:.2f}"],
+#         ["Attendance Rate", f"{class_analysis[class_.id]['attendance_rate']:.2f}%"]
+#     ]
+#     t = Table(general_stats)
+#     t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+#                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+#                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+#                            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+#                            ('FONTSIZE', (0, 0), (-1, 0), 14),
+#                            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+#                            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+#                            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+#                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+#                            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+#                            ('FONTSIZE', (0, 1), (-1, -1), 12),
+#                            ('TOPPADDING', (0, 1), (-1, -1), 6),
+#                            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+#                            ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
+#     elements.append(t)
+
+#     # Add top performers
+#     elements.append(Paragraph("Top Performers", styles['Heading2']))
+#     top_performers = [["Student", "Attendances"]]
+#     for student_id, count in class_analysis[class_.id]['top_students']:
+#         student = Student.query.get(student_id)
+#         if student:
+#             top_performers.append([f"{student.first_name} {student.last_name}", str(count)])
+#     t = Table(top_performers)
+#     t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+#                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+#                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+#                            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+#                            ('FONTSIZE', (0, 0), (-1, 0), 14),
+#                            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+#                            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+#                            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+#                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+#                            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+#                            ('FONTSIZE', (0, 1), (-1, -1), 12),
+#                            ('TOPPADDING', (0, 1), (-1, -1), 6),
+#                            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+#                            ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
+#     elements.append(t)
+
+#     # Add attendance trend
+#     elements.append(Paragraph("Attendance Trend (Last 7 Days)", styles['Heading2']))
+#     t = Table([["Date", "Attendance"]] + recent_trend)
+#     t.setStyle(TableStyle([('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+#                            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+#                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+#                            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+#                            ('FONTSIZE', (0, 0), (-1, 0), 14),
+#                            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+#                            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+#                            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+#                            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+#                            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+#                            ('FONTSIZE', (0, 1), (-1, -1), 12),
+#                            ('TOPPADDING', (0, 1), (-1, -1), 6),
+#                            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+#                            ('GRID', (0, 0), (-1, -1), 1, colors.black)]))
+#     elements.append(t)
+
+#     # Build the PDF
+#     doc.build(elements)
+
+#     # FileResponse sets the Content-Disposition header so that browsers
+#     # present the option to save the file.
+#     buffer.seek(0)
+#     return send_file(buffer, as_attachment=True, download_name=f'{class_.name}_analysis.pdf', mimetype='application/pdf')
+
+
+def get_class_attendance_data(class_id):
+    return (db.session.query(
+        Student.first_name,
+        Student.last_name,
+        Attendance.status,
+        func.count(Attendance.id).label("attendance_count")
+    ).join(Attendance, Attendance.student_id == Student.id).filter(
+        Attendance.class_id == class_id
+    ).group_by(Student.id, Attendance.status).all())
+
+# @views.route('/download_csv/<int:class_id>')
+# @login_required
+# def download_csv(class_id):
+#     class_ = Class.query.get_or_404(class_id)
+#     attendance_data = get_class_attendance_data(class_id)
+
+#     si = BytesIO()
+#     cw = csv.writer(si)
+#     cw.writerow(['Student Name', 'Present', 'Late', 'Absent'])
+
+#     student_data = defaultdict(lambda: {"present": 0, "late": 0, "absent": 0})
+#     for first_name, last_name, status, count in attendance_data:
+#         student_name = f"{first_name} {last_name}"
+#         student_data[student_name][status] += count
+
+#     for student_name, counts in student_data.items():
+#         cw.writerow([student_name, counts['present'], counts['late'], counts['absent']])
+
+#     response = make_response(si.getvalue())
+#     response.headers['Content-Disposition'] = f'attachment; filename={class_.name}_attendance.csv'
+#     response.headers['Content-type'] = 'text/csv'
+#     return response
+
+
+from io import StringIO
+import csv
+from flask import make_response
+
+@views.route('/download_csv/<int:class_id>')
+@login_required
+def download_csv(class_id):
+    class_ = Class.query.get_or_404(class_id)
+    attendance_data = get_class_attendance_data(class_id)
+
+    # Use StringIO instead of BytesIO for text data
+    si = StringIO()
+    cw = csv.writer(si)
+    cw.writerow(['Student Name', 'Present', 'Late', 'Absent'])
+
+    student_data = defaultdict(lambda: {"present": 0, "late": 0, "absent": 0})
+    for first_name, last_name, status, count in attendance_data:
+        student_name = f"{first_name} {last_name}"
+        student_data[student_name][status] += count
+
+    for student_name, counts in student_data.items():
+        cw.writerow([student_name, counts['present'], counts['late'], counts['absent']])
+
+    # Create the response and set headers
+    output = make_response(si.getvalue())
+    output.headers["Content-Disposition"] = f"attachment; filename={class_.name}_attendance.csv"
+    output.headers["Content-type"] = "text/csv"
+    return output
