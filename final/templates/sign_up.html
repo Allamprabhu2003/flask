@@ -230,11 +230,10 @@
                     </div>
                     <button type="submit" class="login-button">Sign Up</button>
                 </form>
-                <p class="signup">Already have an account? <a href="#">Log In</a></p>
+                <p class="signup">Already have an account? <a href="{{ url_for('auth.login')}}">Log In</a></p>
             </div>
         </div>
     </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             var closeButtons = document.querySelectorAll('.close-btn');

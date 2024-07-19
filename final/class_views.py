@@ -48,9 +48,6 @@ def add_class():
     return render_template("dashboard.html", course_types=course_types)
 
 
-
-
-
 @class_views.route("/delete_class/<int:class_id>", methods=["GET", "POST"])
 @login_required
 def delete_class(class_id):

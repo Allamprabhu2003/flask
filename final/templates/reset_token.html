@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Reset Password</title>
+  </head>
+  <body>
+    <h1>Reset Password</h1>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <div>{{ form.password.label }} {{ form.password(class="form-control") }}</div>
+        <div>{{ form.confirm_password.label }} {{ form.confirm_password(class="form-control") }}</div>
+        <div>{{ form.submit(class="btn btn-primary") }}</div>
+    </form>
+  </body>
+</html>

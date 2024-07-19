@@ -23,7 +23,6 @@
     </style>
 
 </head>
-
 <body>
     {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
@@ -43,15 +42,6 @@
         </div>
     </nav>
 
-
-
-
-
-
-
-
-
-
     <a href="{{ url_for('views.index')}}">Home</a>
 
     <div class="container mt-4">
@@ -67,30 +57,40 @@
                                 class="btn btn-sm btn-outline-primary">
                                 <i class="fas fa-list-alt"></i> View Attendance
                             </a>
-                            <a href="{{ url_for('face_recognition.recognize', class_id=class_.id) }}"
+                            <!-- <a href="{{ url_for('face_recognition.recognize', class_id=class_.id) }}"
                                 class="btn btn-sm btn-outline-success">
                                 <i class="fas fa-video"></i> Start Video Feed
-                            </a>
+                            </a> -->
+                            {% if current_user.can_edit_classes %}
+
                             <a href="{{ url_for('class.edit_class', class_id=class_.id) }}"
                                 class="btn btn-sm btn-outline-secondary">
                                 <i class="fas fa-edit"></i> Edit
                             </a>
+                            {% endif %}
+                            <a href="{{ url_for('views.functionalities', class_id=class_.id) }}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-cogs"></i> Manage Functionalities
+                            </a>
+<!-- 
                             <a href="{{ url_for('face_recognition.recognize_image', class_id=class_.id) }}"
                                 class="btn btn-sm btn-outline-info">
                                 <i class="fas fa-camera"></i> Recognize Image
-                            </a>
+                            </a> -->
+                            {% if current_user.can_delete_classes %}
 
                             <a href="{{ url_for('class.delete_class', class_id=class_.id) }}"
                                 onclick="deleteClass({{ class_.id }})" class="btn btn-sm btn-danger">
                                 <i class="fas fa-trash"></i> Delete Class
                             </a>
+                            {% endif %}
+
                             <a href="{{ url_for('views.student_list', course_type=class_.course_type) }}"
                                 class="btn btn-sm btn-outline-info mt-2">
                                 <i class="fas fa-users"></i> View Student List
                             </a>
                             <!-- Add this to your dashboard.html template -->
 <!-- Add this to your dashboard.html template -->
-<a href="{{ url_for('face_recognition.change_video_source', class_id=class_.id) }}" class="btn btn-primary">Change Video Source</a>                        </div>
+<!-- <a href="{{ url_for('face_recognition.change_video_source', class_id=class_.id) }}" class="btn btn-primary">Change Video Source</a>                        </div> -->
                     </div>
                     {% endfor %}
                 </div>
@@ -128,8 +128,8 @@
             <div class="col-md-4">
                 <div class="card">
                     <div class="card-body">
+                        {% if current_user.can_delete_classes %}
                         <h5 class="card-title">Add New Class</h5>
-
 
                         </form>
                         <form action="{{ url_for('class.add_class') }}" method="post">
@@ -151,14 +151,19 @@
 
                             <button type="submit" class="btn btn-primary">Add Class</button>
                         </form>
+                        {% endif %}
+
                     </div>
                 </div>
                 <div class="card mt-4">
                     <div class="card-body">
+                        {% if current_user.can_delete_classes %}
                         <h5 class="card-title">Upload</h5>
+
                         <a href="{{ url_for('student.upload') }}" class="btn btn-primary">
                             <i class="fas fa-upload"></i> Upload
                         </a>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -296,5 +301,4 @@
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
-
 </html>

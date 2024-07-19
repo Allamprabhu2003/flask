@@ -29,11 +29,14 @@ def login():
                 else:
                     return redirect(url_for("views.dashboard"))
             else:
-                flash("Incorrect password. Please try again.", category="error")
+                flash("Incorrect password. Please try again.",
+                      category="error")
         else:
-            flash("Email not found. Please check your email or sign up.", category="error")
+            flash("Email not found. Please check your email or sign up.",
+                  category="error")
 
     return render_template("login.html")
+
 
 @auth.route("/logout")
 @login_required
@@ -41,6 +44,7 @@ def logout():
     logout_user()
     flash("Logged out successfully.", category="success")
     return redirect(url_for("auth.login"))
+
 
 @auth.route("/sign-up", methods=["GET", "POST"])
 def sign_up():
@@ -55,16 +59,24 @@ def sign_up():
 
         user = User.query.filter_by(email=email).first()
         if user:
-            flash("Email already exists. Please use a different email or login.", category="error")
-            print("Email already exists. Please use a different email or login.")
+            flash(
+                "Email already exists. Please use a different email or login.",
+                category="error")
+            print(
+                "Email already exists. Please use a different email or login.")
         elif not email or len(email) < 4:
-            flash("Please provide a valid email address (at least 4 characters).", category="error")
+            flash(
+                "Please provide a valid email address (at least 4 characters).",
+                category="error")
         elif not first_name or len(first_name) < 2:
-            flash("First name must be at least 2 characters long.", category="error")
+            flash("First name must be at least 2 characters long.",
+                  category="error")
         elif not last_name or len(last_name) < 2:
-            flash("Last name must be at least 2 characters long.", category="error")
+            flash("Last name must be at least 2 characters long.",
+                  category="error")
         elif not password1 or len(password1) < 7:
-            flash("Password must be at least 7 characters long.", category="error")
+            flash("Password must be at least 7 characters long.",
+                  category="error")
         elif password1 != password2:
             flash("Passwords don't match. Please try again.", category="error")
         else:
@@ -72,8 +84,10 @@ def sign_up():
                 email=email,
                 first_name=first_name,
                 last_name=last_name,
-                password=generate_password_hash(password1, method="pbkdf2:sha256"),
-                is_admin=is_teacher  # Assuming teachers are admins in your system
+                password=generate_password_hash(password1,
+                                                method="pbkdf2:sha256"),
+                is_admin=
+                is_teacher  # Assuming teachers are admins in your system
             )
             db.session.add(new_user)
             db.session.commit()
@@ -83,3 +97,67 @@ def sign_up():
             return redirect(url_for("views.dashboard"))
 
     return render_template("sign_up.html", user=current_user)
+
+
+from flask import render_template, url_for, flash, redirect, request
+from flask_mail import Message
+from . import mail
+from .models import User
+from .forms import RequestResetForm, ResetPasswordForm
+
+
+@auth.route("/reset_password", methods=['GET', 'POST'])
+def reset_request():
+    print("It worked")
+    form = RequestResetForm()
+    print(form)
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        print("User  ", user)
+        if user:
+            print("dashadskl", user.email)
+            send_reset_email(user)
+        flash(
+            'An email has been sent with instructions to reset your password.',
+            'info')
+        print(
+            'An email has been sent with instructions to reset your password.',
+            'info')
+        return redirect(url_for('auth.login'))
+    return render_template('reset_request.html',
+                           title='Reset Password',
+                           form=form)
+
+
+@auth.route("/reset_password/<token>", methods=['GET', 'POST'])
+def reset_token(token):
+    user = User.verify_reset_token(token)
+    if user is None:
+        flash('That is an invalid or expired token', 'warning')
+        return redirect(url_for('auth.reset_request'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        user.set_password(form.password.data)
+        db.session.commit()
+        flash('Your password has been updated! You are now able to log in',
+              'success')
+        return redirect(url_for('auth.login'))
+    return render_template('reset_token.html',
+                           title='Reset Password',
+                           form=form)
+
+
+def send_reset_email(user):
+    token = user.get_reset_token()
+    print("Token", token)
+    msg = Message('Password Reset Request',
+                  sender="allamprabhuhiremath9@gmail.com",
+                  recipients=[user.email])
+    msg.body = f'''To reset your password, visit the following link:
+{url_for('auth.reset_token', token=token, _external=True)}
+
+If you did not make this request then simply ignore this email and no changes will be made.
+'''
+    print("fdjh", msg)
+
+    mail.send(msg)

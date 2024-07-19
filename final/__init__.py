@@ -245,17 +245,28 @@
 
 
 
-from flask import Flask
+from flask import Config, Flask
 from flask_login import LoginManager
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from .extention import db
 from .admin import init_admin  # Import the new init_admin function
+from flask_mail import Mail
+from .config import Config
 
-def create_app():
+
+mail = Mail()
+def create_app(config_class=Config):
     app = Flask(__name__)
-    app.config["SECRET_KEY"] = "dshjkdshfkldjklfkj"
-    app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:1234@localhost/abd"
+    app.config.from_object(config_class)
+
+    # app.config["SECRET_KEY"] = "dshjkdshfkldjklfkj"
+    # app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:1234@localhost/abd"
+    # app.config.from_object(config_class)
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1234@localhost/abd'
+
+    # main.init_app(app)
+    mail.init_app(app)
 
     db.init_app(app)
     migrate = Migrate(app, db)
