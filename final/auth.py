@@ -3,12 +3,13 @@ from flask import request, render_template, redirect, url_for, flash, Blueprint
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask_login import login_required, login_user, logout_user, current_user
 from .models import User
-from . import db
+from . import db, csrf
 
 auth = Blueprint("auth", __name__)
 
 
 @auth.route("/login", methods=["GET", "POST"])
+@csrf.exempt 
 def login():
     if current_user.is_authenticated:
         return redirect(url_for("views.dashboard"))
@@ -46,57 +47,122 @@ def logout():
     return redirect(url_for("auth.login"))
 
 
+# @auth.route("/sign-up", methods=["GET", "POST"])
+# def sign_up():
+#     print("Signing UP .................")
+#     errors = {}
+
+#     if request.method == "POST":
+#         email = request.form.get("email")
+#         first_name = request.form.get("first_name")
+#         last_name = request.form.get("last_name")
+#         password1 = request.form.get("password1")
+#         password2 = request.form.get("password2")
+#         is_teacher = request.form.get("is_teacher") == "on"
+
+#         user = User.query.filter_by(email=email).first()
+#         if user:
+#             errors['email'] = "Email already exists. Please use a different email or login."
+
+#             flash(
+#                 "Email already exists. Please use a different email or login.",
+#                 category="error")
+#             print(
+#                 "Email already exists. Please use a different email or login.")
+#         elif not email or len(email) < 4:
+#             flash(
+#                 "Please provide a valid email address (at least 4 characters).",
+#                 category="error")
+#             errors['email'] = "Please provide a valid email address (at least 4 characters)."
+
+#         elif not first_name or len(first_name) < 2:
+#             errors['first_name'] = "First name must be at least 2 characters long."
+#             flash("First name must be at least 2 characters long.",
+#                   category="error")
+#         elif not last_name or len(last_name) < 2:
+#             errors['last_name'] = "Last name must be at least 2 characters long."
+
+#             flash("Last name must be at least 2 characters long.",
+#                   category="error")
+#         elif not password1 or len(password1) < 7:
+
+#             errors['password1'] = "Password must be at least 7 characters long."
+#             flash("Password must be at least 7 characters long.",
+#                   category="error")
+#         elif password1 != password2:
+#             errors['password2'] = "Passwords don't match. Please try again."
+
+#             flash("Passwords don't match. Please try again.", category="error")
+#         else:
+#             new_user = User(
+#                 email=email,
+#                 first_name=first_name,
+#                 last_name=last_name,
+#                 password=generate_password_hash(password1,
+#                                                 method="pbkdf2:sha256"),
+#                 is_admin=
+#                 is_teacher  # Assuming teachers are admins in your system
+#             )
+#             db.session.add(new_user)
+#             db.session.commit()
+#             login_user(new_user, remember=True)
+#             flash("Account created successfully!", category="success")
+#             print("Account created successfully!")
+#             return redirect(url_for("views.dashboard"))
+
+#     return render_template("sign_up.html", user=current_user, errors=errors)
+
+
+
 @auth.route("/sign-up", methods=["GET", "POST"])
 def sign_up():
-    print("Signing UP .................")
-    if request.method == "POST":
-        email = request.form.get("email")
-        first_name = request.form.get("first_name")
-        last_name = request.form.get("last_name")
-        password1 = request.form.get("password1")
-        password2 = request.form.get("password2")
-        is_teacher = request.form.get("is_teacher") == "on"
+    errors = {}
+    form_data = {
+        "email": "",
+        "first_name": "",
+        "last_name": "",
+        "password1": "",
+        "password2": "",
+        "is_teacher": False
+    }
 
-        user = User.query.filter_by(email=email).first()
+    if request.method == "POST":
+        form_data['email'] = request.form.get("email")
+        form_data['first_name'] = request.form.get("first_name")
+        form_data['last_name'] = request.form.get("last_name")
+        form_data['password1'] = request.form.get("password1")
+        form_data['password2'] = request.form.get("password2")
+        form_data['is_teacher'] = request.form.get("is_teacher") == "on"
+
+        user = User.query.filter_by(email=form_data['email']).first()
         if user:
-            flash(
-                "Email already exists. Please use a different email or login.",
-                category="error")
-            print(
-                "Email already exists. Please use a different email or login.")
-        elif not email or len(email) < 4:
-            flash(
-                "Please provide a valid email address (at least 4 characters).",
-                category="error")
-        elif not first_name or len(first_name) < 2:
-            flash("First name must be at least 2 characters long.",
-                  category="error")
-        elif not last_name or len(last_name) < 2:
-            flash("Last name must be at least 2 characters long.",
-                  category="error")
-        elif not password1 or len(password1) < 7:
-            flash("Password must be at least 7 characters long.",
-                  category="error")
-        elif password1 != password2:
-            flash("Passwords don't match. Please try again.", category="error")
-        else:
+            errors['email'] = "Email already exists. Please use a different email or login."
+        if not form_data['email'] or len(form_data['email']) < 4:
+            errors['email'] = "Please provide a valid email address (at least 4 characters)."
+        if not form_data['first_name'] or len(form_data['first_name']) < 2:
+            errors['first_name'] = "First name must be at least 2 characters long."
+        if not form_data['last_name'] or len(form_data['last_name']) < 2:
+            errors['last_name'] = "Last name must be at least 2 characters long."
+        if not form_data['password1'] or len(form_data['password1']) < 7:
+            errors['password1'] = "Password must be at least 7 characters long."
+        if form_data['password1'] != form_data['password2']:
+            errors['password2'] = "Passwords don't match. Please try again."
+
+        if not errors:
             new_user = User(
-                email=email,
-                first_name=first_name,
-                last_name=last_name,
-                password=generate_password_hash(password1,
-                                                method="pbkdf2:sha256"),
-                is_admin=
-                is_teacher  # Assuming teachers are admins in your system
+                email=form_data['email'],
+                first_name=form_data['first_name'],
+                last_name=form_data['last_name'],
+                password=generate_password_hash(form_data['password1'], method="pbkdf2:sha256"),
+                is_admin=form_data['is_teacher']  # Assuming teachers are admins in your system
             )
             db.session.add(new_user)
             db.session.commit()
             login_user(new_user, remember=True)
             flash("Account created successfully!", category="success")
-            print("Account created successfully!")
             return redirect(url_for("views.dashboard"))
 
-    return render_template("sign_up.html", user=current_user)
+    return render_template("sign_up.html", user=current_user, errors=errors, form_data=form_data)
 
 
 from flask import render_template, url_for, flash, redirect, request

@@ -7,31 +7,111 @@ from flask import (Blueprint, Response, render_template, request,
 
 from .models import Class
 from .utils import (run_face_recognition, update_attendance)
-
+from . import csrf
 face_recognition = Blueprint('face_recognition', __name__)
 
 
-@face_recognition.route("/recognize_image/<int:class_id>",
-                        methods=["GET", "POST"])
+# @face_recognition.route("/recognize_image/<int:class_id>",
+#                         methods=["GET", "POST"])
+# @login_required
+# @csrf.exempt
+# def recognize_image(class_id):
+#     if request.method == "POST":
+#         image_file = request.files["image"]
+#         try:
+#             image = cv2.imdecode(np.frombuffer(image_file.read(), np.uint8),
+#                                  cv2.IMREAD_COLOR)
+#             # frame, attendance_records = run_face_recognition(image, class_id)
+#             frame, attendance_records = run_face_recognition(image)
+#             update_attendance(attendance_records, class_id)
+#             ret, buffer = cv2.imencode(".jpg", frame)
+#             frame = buffer.tobytes()
+#             return Response(
+#                 b"--frame\r\n"
+#                 b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n",
+#                 mimetype="multipart/x-mixed-replace; boundary=frame",
+#             )
+#         except Exception as e:
+#             return render_template("error.html", error=str(e))
+#     return render_template("recognize_image.html", class_id=class_id)
+
+
+
+from flask import render_template, request, Response, jsonify
+from flask_login import login_required
+from werkzeug.exceptions import BadRequest
+import cv2
+import numpy as np
+import logging
+import traceback
+import io
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
+@face_recognition.route("/recognize_image/<int:class_id>", methods=["GET", "POST"])
 @login_required
+@csrf.exempt
 def recognize_image(class_id):
     if request.method == "POST":
-        image_file = request.files["image"]
-        try:
-            image = cv2.imdecode(np.frombuffer(image_file.read(), np.uint8),
-                                 cv2.IMREAD_COLOR)
-            # frame, attendance_records = run_face_recognition(image, class_id)
-            frame, attendance_records = run_face_recognition(image)
-            update_attendance(attendance_records, class_id)
-            ret, buffer = cv2.imencode(".jpg", frame)
-            frame = buffer.tobytes()
-            return Response(
-                b"--frame\r\n"
-                b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n",
-                mimetype="multipart/x-mixed-replace; boundary=frame",
-            )
-        except Exception as e:
-            return render_template("error.html", error=str(e))
+        logger.debug(f"Received POST request for class_id: {class_id}")
+        logger.debug(f"Request headers: {dict(request.headers)}")
+        logger.debug(f"Request files: {request.files}")
+        logger.debug(f"Request form: {request.form}")
+
+        # Check if the post request has the file part
+        if 'image' not in request.files:
+            logger.error("No file part in the request")
+            return jsonify({"error": "No file part"}), 400
+        
+        file = request.files['image']
+        
+        # If user does not select file, browser also
+        # submit an empty part without filename
+        if file.filename == '':
+            logger.error("No selected file")
+            return jsonify({"error": "No selected file"}), 400
+        
+        if file:
+            try:
+                # Read the file into a byte stream
+                file_bytes = io.BytesIO(file.read())
+                
+                # Use numpy to construct an array from the byte stream
+                file_bytes_np = np.asarray(bytearray(file_bytes.read()), dtype=np.uint8)
+                
+                # Use cv2 to decode the image
+                image = cv2.imdecode(file_bytes_np, cv2.IMREAD_COLOR)
+                
+                if image is None:
+                    logger.error("Failed to decode image")
+                    return jsonify({"error": "Failed to decode image"}), 400
+                
+                logger.debug(f"Image shape: {image.shape}")
+                logger.debug(f"Image dtype: {image.dtype}")
+
+                # Run face recognition
+                frame, attendance_records = run_face_recognition(image)
+                
+                # Update attendance
+                update_attendance(attendance_records, class_id)
+                
+                # Encode the result image
+                _, buffer = cv2.imencode(".jpg", frame)
+                frame_bytes = buffer.tobytes()
+                
+                logger.debug("Face recognition completed successfully")
+                return Response(frame_bytes, mimetype="image/jpeg")
+            
+            except Exception as e:
+                logger.error(f"An error occurred during face recognition: {str(e)}")
+                logger.error(traceback.format_exc())
+                return jsonify({"error": f"An error occurred: {str(e)}"}), 500
+        
+        else:
+            logger.error("Allowed file types are not supported")
+            return jsonify({"error": "Allowed file types are not supported"}), 400
+    
     return render_template("recognize_image.html", class_id=class_id)
 
 

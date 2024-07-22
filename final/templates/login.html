@@ -276,9 +276,91 @@ body {
 
 
 
+
+
+
+
+/* Container for the notifications */
+.notification-container {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    max-width: 300px;
+    z-index: 9999;
+}
+
+/* Basic alert styles */
+.alert {
+    display: flex;
+    align-items: center;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    color: #fff;
+    background-color: #343a40; /* Default background color */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Different categories */
+.alert-success {
+    background-color: #28a745; /* Success green */
+}
+
+.alert-info {
+    background-color: #17a2b8; /* Info blue */
+}
+
+.alert-warning {
+    background-color: #ffc107; /* Warning yellow */
+    color: #212529; /* Dark text for better contrast */
+}
+
+.alert-danger {
+    background-color: #dc3545; /* Danger red */
+}
+
+/* Alert icon */
+.alert-icon {
+    font-size: 1.5rem;
+    margin-right: 10px;
+}
+
+/* Content of the alert */
+.alert-content {
+    flex-grow: 1;
+}
+
+/* Title of the alert */
+.alert-title {
+    font-weight: bold;
+}
+
+/* Message text */
+.alert-message {
+    margin: 0;
+}
+
+/* Close button */
+.close-btn {
+    background: none;
+    border: none;
+    color: inherit;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close-btn:hover {
+    color: #fff;
+    opacity: 0.75;
+}
+
+
+
 </style>
 <body>
-    <div class="notification notification-vibrant">
+    <!-- <div class="notification notification-vibrant">
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
@@ -293,7 +375,27 @@ body {
         {% endif %}
         {% endwith %}
     </div>
-    
+     -->
+
+      <!-- Content of your page -->
+    <div class="notification-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            <span class="alert-icon">&#9888;</span>
+            <div class="alert-content">
+                <strong class="alert-title">{{ category | capitalize }}!</strong>
+                <p class="alert-message">{{ message }}</p>
+            </div>
+            <button type="button" class="close close-btn" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
 
 <form method="POST" action="{{ url_for('auth.login') }}">
     <div class="container">

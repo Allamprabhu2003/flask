@@ -217,110 +217,71 @@
             </div>
 
             <div id="analysisSection" style="display: none;">
-                <div id="content">
-                    <div class="container mt-5">
-                        <h2 class="mb-4">Enhanced Attendance Dashboard</h2>
-                        
-                        {% for class_ in classes %}
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h3>{{ class_.name }} - Attendance Analysis</h3>
+                {% for class_ in classes %}
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5>{{ class_.name }} - Analysis</h5>
+                        <ul> <a href="{{ url_for('views.download_pdf', class_id=class_.id) }}" class="btn btn-sm btn-outline-secondary float-end">
+                            <i class="fas fa-file-pdf"></i> Download PDF
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                
+                                <h6>General Statistics</h6>
+                               
+                                    <li>Total Students: {{ class_analysis[class_.id]['total_students'] }}</li>
+                                    <li>Average Attendance: {{ class_analysis[class_.id]['avg_attendance']|round(2) }}
+                                    </li>
+                                    <li>Attendance Rate: {{ class_analysis[class_.id]['attendance_rate']|round(2) }}%
+                                    </li>
+                                </ul>
                             </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-8 position-relative">
-                                        <a href="{{ url_for('views.full_screen_plot', class_id=class_.id) }}" class="btn btn-primary btn-sm full-screen-btn" target="_blank">
-                                            <i class="fas fa-expand"></i> Full Screen
-                                        </a>
-                                        <canvas id="attendanceChart{{ class_.id }}"></canvas>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <h4>Class Statistics</h4>
-                                        <ul class="list-group">
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                Total Students
-                                                <span class="badge bg-primary rounded-pill">{{ class_analysis[class_.id]['total_students'] }}</span>
-                                            </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                Average Attendance
-                                                <span class="badge bg-primary rounded-pill">{{ class_analysis[class_.id]['avg_attendance']|round(2) }}</span>
-                                            </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                Attendance Rate
-                                                <span class="badge bg-primary rounded-pill">{{ class_analysis[class_.id]['attendance_rate']|round(2) }}%</span>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                                <!-- Rest of the card content remains the same -->
+                            <div class="col-md-6">
+                                <h6>Top Performers</h6>
+                                <ol>
+                                    {% for student, count in class_analysis[class_.id]['top_students'] %}
+                                    <li>{{ student.first_name }} {{ student.last_name }} ({{ count }} attendances)</li>
+                                    {% endfor %}
+                                </ol>
                             </div>
                         </div>
-                        {% endfor %}
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <h6>Attendance Trend (Last 7 Days)</h6>
+                                <canvas id="trendChart{{ class_.id }}"></canvas>
+                            </div>
+                        </div>
                     </div>
                 </div>
-              
+                {% endfor %}
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
                 <script>
                     {% for class_ in classes %}
-                    var ctx{{ class_.id }} = document.getElementById('attendanceChart{{ class_.id }}').getContext('2d');
-                    var attendanceData{{ class_.id }} = {
-                        labels: {{ class_analysis[class_.id]['dates']|tojson }},
-                        datasets: [{
-                            label: 'Attendance',
-                            data: {{ class_analysis[class_.id]['attendance_counts']|tojson }},
-                            borderColor: 'rgb(75, 192, 192)',
-                            tension: 0.1,
-                            fill: false
-                        }]
-                    };
+                    var ctx{{ class_.id }} = document.getElementById('trendChart{{ class_.id }}').getContext('2d');
                     var chart{{ class_.id }} = new Chart(ctx{{ class_.id }}, {
                         type: 'line',
-                        data: attendanceData{{ class_.id }},
+                        data: {
+                            labels: ['7 days ago', '6 days ago', '5 days ago', '4 days ago', '3 days ago', '2 days ago', 'Yesterday'],
+                            datasets: [{
+                                label: 'Attendance',
+                                data: {{ class_analysis[class_.id]['recent_trend'] | tojson }},
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    }]
+                        },
                         options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Students'
-                                    }
-                                },
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Date'
-                                    }
-                                }
-                            },
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Attendance Trend'
-                                },
-                                zoom: {
-                                    pan: {
-                                        enabled: true,
-                                        mode: 'x',
-                                        threshold: 10,
-                                    },
-                                    zoom: {
-                                        wheel: {
-                                            enabled: true,
-                                        },
-                                        pinch: {
-                                            enabled: true
-                                        },
-                                        mode: 'x',
-                                    }
-                                }
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
                             }
                         }
+                    }
                     });
                     {% endfor %}
-                    </script>
-                
-                
+                </script>
             </div>
         </div>
     </div>

@@ -104,6 +104,15 @@
                 <tr>
                     <td>{{ student.name }}</td>
                     <td>{{ student.email }}</td>
+                    <td> <a href="{{ url_for('student.edit', student_id=student.id)}}">Edit</a></td>
+<td>
+    <!-- Assuming you have a way to get the student's ID, perhaps from a query parameter or context -->
+<button class="btn btn-danger" onclick="deleteStudent({{ student.id }})">Delete Student</button>
+
+<!-- Hidden input to store CSRF token -->
+<input type="hidden" id="csrf_token" value="{{ csrf_token() }}">
+
+</td>
                 </tr>
                 {% else %}
                 <tr>
@@ -116,6 +125,35 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
+
+  
+<script>
+    function deleteStudent(studentId) {
+        const csrfToken = document.getElementById('csrf_token').value;
+
+        fetch('{{ url_for("student.delete_student") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken  // Ensure CSRF protection
+            },
+            body: JSON.stringify({ id: studentId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Student deleted successfully');
+                window.location.href = '{{ url_for("views.dashboard") }}';  // Redirect or update the UI as needed
+            } else {
+                alert('Error deleting student: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+</script>
 </body>
 
 </html>

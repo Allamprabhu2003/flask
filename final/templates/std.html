@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Student</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 90%;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .left-section, .right-section {
+            width: 48%;
+        }
+
+        .left-section img {
+            width: 100%;
+            border-radius: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-control {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            background-color: #00796b;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #004d40;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        #new_course_type {
+            margin-top: 10px;
+            display: block;
+            width: calc(100% - 22px);
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .signup {
+            margin-top: 20px;
+        }
+
+        .notification-vibrant {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            width: auto;
+        }
+
+        .alert {
+            padding: 10px 20px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 16px;
+        }
+
+        .alert-dismissible .close-btn {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #000;
+        }
+
+        .alert-icon {
+            margin-right: 10px;
+            font-size: 24px;
+        }
+
+        .alert-message {
+            flex-grow: 1;
+        }
+
+        .alert-error {
+            background-color: #f44336;
+            color: #fff;
+        }
+
+        .alert-success {
+            background-color: #4caf50;
+            color: #fff;
+        }
+
+        .alert-warning {
+            background-color: #ff9800;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="notification-vibrant">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+            <span class="alert-icon">&#9888;</span>
+            <span class="alert-message">{{ message }}</span>
+            <button type="button" class="close-btn" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+    </div>
+    
+    <div class="container">
+      
+        <div class="right-section">
+            <h2>Edit Student</h2>
+            <form method="POST" action="{{ url_for('student.edit', student_id=student.id) }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="roll_number">Roll Number</label>
+                    <input type="text" class="form-control" id="roll_number" name="roll_number" value="{{ student.roll_number }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" class="form-control" id="first_name" name="first_name" value="{{ student.first_name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" class="form-control" id="last_name" name="last_name" value="{{ student.last_name }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" class="form-control" id="email" name="email" value="{{ student.email }}" required>
+                </div>
+                <div class="form-group">
+                    <label for="course_type">Course Type</label>
+                    <select id="course_type" class="form-control" name="course_type" required>
+                        {% for course_type in course_types %}
+                        <option value="{{ course_type }}" {% if student.course_type == course_type %}selected{% endif %}>{{ course_type }}</option>
+                        {% endfor %}
+                    </select>
+                    <input type="text" class="form-control" id="new_course_type" name="new_course_type" placeholder="Or add a new course type">
+                </div>
+                <div class="form-group">
+                    <label for="image">Upload Image</label>
+                    <input type="file" id="image" name="image" accept="image/*">
+                </div>
+                <button type="submit" class="btn">Update</button>
+            </form>
+            <p class="signup"><a href="{{ url_for('views.dashboard')}}">Back to Dashboard</a></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var closeButtons = document.querySelectorAll('.close-btn');
+            closeButtons.forEach(function(button) {
+                button.addEventListener('click', function() {
+                    var alert = button.closest('.alert');
+                    alert.remove();
+                });
+            });
+        });
+    </script>
+</body>
+</html>

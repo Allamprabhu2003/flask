@@ -1,19 +1,137 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Recognize Image</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Roboto', sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border-radius: 15px 15px 0 0 !important;
+        }
+        .btn-primary {
+            background-color: #007bff;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+        #preview-image, #recognized-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            display: none;
+        }
+        .spinner-border {
+            display: none;
+        }
+        #error-message {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Recognize Image</h1>
-    <form method="POST" enctype="multipart/form-data">
-        <input type="file" name="image" accept="image/*">
-        <input type="submit" value="Recognize">
-    </form>
+    <div class="container">
+        <div class="card">
+            <div class="card-header text-center">
+                <h2><i class="fas fa-camera"></i> Face Recognition</h2>
+            </div>
+            <div class="card-body">
+                <form id="recognize-form" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="image-input" class="form-label">Select an image:</label>
+                        <input type="file" class="form-control" id="image-input" name="image" accept="image/*" required>
+                    </div>
+                    <div class="mb-3">
+                        <img id="preview-image" src="#" alt="Preview" class="img-fluid">
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Recognize
+                        </button>
+                    </div>
+                </form>
+                <div class="mt-4 text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <img id="recognized-image" src="#" alt="Recognized Image" class="img-fluid mt-3">
+                    <div id="error-message" class="alert alert-danger mt-3" role="alert"></div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    {% for class_ in classes %}
-    
-    <img src="{{ url_for('views.recognize_image',class_id=class_id) }}" alt="Recognized Image">
-{% endfor %}
-    
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#image-input').change(function () {
+                const file = this.files[0];
+                
+                if (file) {
+                    let reader = new FileReader();
+                    reader.onload = function (event) {
+                        $('#preview-image').attr('src', event.target.result).show();
+                    }
+                    reader.readAsDataURL(file);
+                }
+            });
+
+            $('#recognize-form').on('submit', function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+
+                $('.spinner-border').show();
+                $('#recognized-image').hide();
+                $('#error-message').hide();
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ url_for("face_recognition.recognize_image", class_id=class_id) }}',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function (data, textStatus, jqXHR) {
+                        if (jqXHR.getResponseHeader('content-type').indexOf('application/json') !== -1) {
+                            // This is an error response
+                            $('#error-message').text(data.error).show();
+                        } else {
+                            // This is an image response
+                            var imageUrl = URL.createObjectURL(new Blob([data], { type: 'image/jpeg' }));
+                            $('#recognized-image').attr('src', imageUrl).show();
+                        }
+                        $('.spinner-border').hide();
+                    },
+                    error: function (jqXHR, textStatus, errorThrown) {
+                        let errorMessage = "An error occurred. Please try again.";
+                        if (jqXHR.responseJSON && jqXHR.responseJSON.error) {
+                            errorMessage = jqXHR.responseJSON.error;
+                        }
+                        $('#error-message').text(errorMessage).show();
+                        $('.spinner-border').hide();
+                        console.error('Error details:', textStatus, errorThrown);
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

@@ -1,30 +1,62 @@
 {% extends 'admin/master.html' %}
 
 {% block body %}
-<h1>User Permissions</h1>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>User</th>
-            <th>Can Add Classes</th>
-            <th>Can Edit Classes</th>
-            <th>Can Delete Classes</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody>
-    {% for user in users %}
-        <tr>
-            <td>{{ user.email }}</td>
-            <form action="{{ url_for('.update_permissions') }}" method="POST">
-                <input type="hidden" name="user_id" value="{{ user.id }}">
-                <td><input type="checkbox" name="can_add_classes" {% if user.can_add_classes %}checked{% endif %}></td>
-                <td><input type="checkbox" name="can_edit_classes" {% if user.can_edit_classes %}checked{% endif %}></td>
-                <td><input type="checkbox" name="can_delete_classes" {% if user.can_delete_classes %}checked{% endif %}></td>
-                <td><button type="submit" class="btn btn-primary btn-sm">Update</button></td>
-            </form>
-        </tr>
-    {% endfor %}
-    </tbody>
-</table>
+<div class="row">
+    <div class="col-md-12">
+        <h1 class="text-center mb-4">User Permissions</h1>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="table-responsive permissions-table">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Can Add Classes</th>
+                        <th>Can Edit Classes</th>
+                        <th>Can Delete Classes</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for user in users %}
+                    <tr>
+                        <td>{{ user.email }}</td>
+                        <form action="{{ url_for('.update_permissions') }}" method="POST">
+                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                            <td>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="can_add_classes" class="custom-checkbox" {% if user.can_add_classes %}checked{% endif %}>
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="can_edit_classes" class="custom-checkbox" {% if user.can_edit_classes %}checked{% endif %}>
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <div class="checkbox">
+                                    <label>
+                                        <input type="checkbox" name="can_delete_classes" class="custom-checkbox" {% if user.can_delete_classes %}checked{% endif %}>
+                                    </label>
+                                </div>
+                            </td>
+                            <td>
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-save"></i> Update
+                                </button>
+                            </td>
+                        </form>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 {% endblock %}

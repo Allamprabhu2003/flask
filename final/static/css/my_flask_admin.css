@@ -1,0 +1,178 @@
+/* Custom CSS for Admin Panel */
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #f0f4f8;
+    color: #333;
+}
+
+/* Navbar styles */
+.navbar-default {
+    background-color: #2c3e50;
+    border-color: #2c3e50;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-default .navbar-brand,
+.navbar-default .navbar-nav > li > a {
+    color: #060d0e;
+    transition: all 0.3s ease;
+}
+
+.navbar-default .navbar-brand {
+    font-weight: 700;
+    font-size: 24px;
+}
+
+.navbar-default .navbar-brand:hover,
+.navbar-default .navbar-nav > li > a:hover,
+.navbar-default .navbar-nav > li > a:focus {
+    color: #3498db;
+    background-color: rgba(236, 240, 241, 0.1);
+}
+
+.navbar-default .navbar-nav > .active > a,
+.navbar-default .navbar-nav > .active > a:hover,
+.navbar-default .navbar-nav > .active > a:focus {
+    color: #3498db;
+    background-color: rgba(236, 240, 241, 0.2);
+}
+
+.navbar-default .navbar-toggle {
+    border-color: #ecf0f1;
+}
+
+.navbar-default .navbar-toggle:hover,
+.navbar-default .navbar-toggle:focus {
+    background-color: rgba(236, 240, 241, 0.1);
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+    background-color: #16363e;
+}
+
+.navbar-nav > li > a {
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+.navbar-brand {
+    height: 60px;
+    line-height: 30px;
+}
+
+@media (max-width: 767px) {
+    .navbar-nav > li > a {
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+}
+
+/* Add a subtle gradient to the navbar */
+.navbar-default::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: red;
+    /* background: linear-gradient(to bottom, rgba(52, 152, 219, 0.1) 0%, rgba(52, 152, 219, 0) 100%); */
+    pointer-events: none;
+}
+
+/* Style for dropdown menus */
+.navbar-nav .dropdown-menu {
+    background-color: #34495e;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.navbar-nav .dropdown-menu > li > a {
+    color: #ecf0f1;
+    padding: 10px 20px;
+}
+
+.navbar-nav .dropdown-menu > li > a:hover,
+.navbar-nav .dropdown-menu > li > a:focus {
+    background-color: #3498db;
+    color: #ffffff;
+}
+
+/* Add icons to navbar items */
+.navbar-nav > li > a > i {
+    margin-right: 5px;
+}
+
+/* Rest of the styles... */
+
+.panel {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.panel-info > .panel-heading {
+    background-color: #3498db;
+    color: white;
+    border: none;
+}
+
+.panel-success > .panel-heading {
+    background-color: #2ecc71;
+    color: white;
+    border: none;
+}
+
+.panel-warning > .panel-heading {
+    background-color: #f39c12;
+    color: white;
+    border: none;
+}
+
+.panel-danger > .panel-heading {
+    background-color: #e74c3c;
+    color: white;
+    border: none;
+}
+
+.panel-body {
+    padding: 20px;
+}
+
+.panel-body h3 {
+    font-size: 2.5em;
+    font-weight: bold;
+    margin: 0;
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    border-color: #3498db;
+}
+
+.btn-primary:hover {
+    background-color: #2980b9;
+    border-color: #2980b9;
+}
+
+/* Additional styles for better visibility */
+.navbar-default .navbar-collapse {
+    border-color: #34495e;
+}
+
+.navbar-default .navbar-nav .open .dropdown-menu > li > a {
+    color: #ecf0f1;
+}
+
+.navbar-default .navbar-nav .open .dropdown-menu > li > a:hover,
+.navbar-default .navbar-nav .open .dropdown-menu > li > a:focus {
+    color: #3498db;
+    background-color: rgba(236, 240, 241, 0.1);
+}
+
+/* Add some padding to the main content */
+.container-fluid {
+    padding-top: 70px;
+}

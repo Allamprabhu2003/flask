@@ -21,88 +21,120 @@ def index():
     return render_template("home.html")
 
 
-def analyze_class_data(class_data):
-    class_analysis = defaultdict(
-        lambda: {
-            "total_students": 0,
-            "total_classes": 0,
-            "avg_attendance": 0,
-            "top_students": [],
-            "bottom_students": [],
-            "recent_trend": [0] * 7,
-            "students": [],
-            "attendance_rate": 0,
-        })
+# def analyze_class_data(class_data):
+#     class_analysis = defaultdict(
+#         lambda: {
+#             "total_students": 0,
+#             "total_classes": 0,
+#             "avg_attendance": 0,
+#             "top_students": [],
+#             "bottom_students": [],
+#             "recent_trend": [0] * 7,
+#             "students": [],
+#             "attendance_rate": 0,
+#         })
 
-    class_attendance = defaultdict(lambda: defaultdict(lambda: {
-        "present": 0,
-        "late": 0,
-        "absent": 0
-    }))
+#     class_attendance = defaultdict(lambda: defaultdict(lambda: {
+#         "present": 0,
+#         "late": 0,
+#         "absent": 0
+#     }))
 
-    now = datetime.now()
-    week_ago = now - timedelta(days=7)
+#     now = datetime.now()
+#     week_ago = now - timedelta(days=7)
 
-    for class_, student, status, attendance_count, last_attendance in class_data:
-        analysis = class_analysis[class_.id]
-        class_attendance[class_.id][student.id][status] += attendance_count
+#     for class_, student, status, attendance_count, last_attendance in class_data:
+#         analysis = class_analysis[class_.id]
+#         class_attendance[class_.id][student.id][status] += attendance_count
 
-        if student not in analysis["students"]:
-            analysis["students"].append(student)
-            analysis["total_students"] += 1
+#         if student not in analysis["students"]:
+#             analysis["students"].append(student)
+#             analysis["total_students"] += 1
 
-        analysis["total_classes"] = max(
-            analysis["total_classes"],
-            sum(class_attendance[class_.id][student.id].values()),
-        )
+#         analysis["total_classes"] = max(
+#             analysis["total_classes"],
+#             sum(class_attendance[class_.id][student.id].values()),
+#         )
 
-        if last_attendance and last_attendance >= week_ago:
-            day_index = (now.date() - last_attendance.date()).days
-            if 0 <= day_index < 7:
-                analysis["recent_trend"][6 - day_index] += 1
+#         if last_attendance and last_attendance >= week_ago:
+#             day_index = (now.date() - last_attendance.date()).days
+#             if 0 <= day_index < 7:
+#                 analysis["recent_trend"][6 - day_index] += 1
 
-    for class_id, analysis in class_analysis.items():
-        student_counts = [
-            (student, sum(counts.values()))
-            for student, counts in class_attendance[class_id].items()
-        ]
-        if analysis["total_students"] > 0:
-            analysis["avg_attendance"] = (sum(count
-                                              for _, count in student_counts) /
-                                          analysis["total_students"])
+#     for class_id, analysis in class_analysis.items():
+#         student_counts = [
+#             (student, sum(counts.values()))
+#             for student, counts in class_attendance[class_id].items()
+#         ]
+#         if analysis["total_students"] > 0:
+#             analysis["avg_attendance"] = (sum(count
+#                                               for _, count in student_counts) /
+#                                           analysis["total_students"])
 
-        analysis["top_students"] = sorted(student_counts,
-                                          key=lambda x: x[1],
-                                          reverse=True)[:5]
-        analysis["bottom_students"] = sorted(student_counts,
-                                             key=lambda x: x[1])[:3]
+#         analysis["top_students"] = sorted(student_counts,
+#                                           key=lambda x: x[1],
+#                                           reverse=True)[:5]
+#         analysis["bottom_students"] = sorted(student_counts,
+#                                              key=lambda x: x[1])[:3]
 
-        if analysis["total_students"] > 0 and analysis["total_classes"] > 0:
-            analysis["attendance_rate"] = (
-                sum(count for _, count in student_counts) /
-                (analysis["total_students"] * analysis["total_classes"])) * 100
+#         if analysis["total_students"] > 0 and analysis["total_classes"] > 0:
+#             analysis["attendance_rate"] = (
+#                 sum(count for _, count in student_counts) /
+#                 (analysis["total_students"] * analysis["total_classes"])) * 100
 
-    return class_analysis, class_attendance
+#     return class_analysis, class_attendance
 
 
-# @views.route('/functionalities')
+# @views.route("/dashboard")
 # @login_required
-# def functionalities():
-#     if current_user.is_admin:
-#         classes = Class.query.all()
-#     else:
-#         classes = Class.query.filter(Class.teachers.any(id=current_user.id)).all()
-#     return render_template('Attendance.html', classes=classes)
+# def dashboard():
+#     students = Student.query.all()
 
-@views.route('/functionalities/<int:class_id>')
-@login_required
-def functionalities(class_id):
-    class_ = Class.query.get_or_404(class_id)
-    if not current_user.is_admin and class_ not in current_user.classes:
-        flash('You do not have permission to access this class.', 'danger')
-        print('You do not have permission to access this class.', 'danger')
-        return redirect(url_for('views.dashboard'))
-    return render_template('Attendance.html', class_=class_)
+#     if current_user.is_admin:
+#         return redirect(url_for("admin.index"))
+
+#     teacher_classes = Class.query.filter(
+#         Class.teachers.any(id=current_user.id)).all()
+#     class_data = get_class_data(teacher_classes)
+#     class_analysis, class_attendance = analyze_class_data(class_data)
+
+#     course_types = ["BCA", "BCS", "BA"]
+
+#     courses_data = {}
+#     for class_ in teacher_classes:
+#         if class_.course_type not in courses_data:
+#             courses_data[class_.course_type] = {
+#                 "name": class_.course_type,
+#                 "total_students": 0,
+#             }
+#         courses_data[class_.course_type]["total_students"] += (
+#             db.session.query(func.count(Student.id)).filter(
+#                 Student.classes.any(id=class_.id)).scalar())
+
+#     return render_template(
+#         "dashboard.html",
+#         classes=teacher_classes,
+#         class_analysis=class_analysis,
+#         class_attendance=class_attendance,
+#         course_types=course_types,
+#         courses_data=courses_data,
+#         students=students
+#     )
+
+
+
+
+
+
+
+from datetime import datetime, timedelta
+from collections import defaultdict
+from flask import render_template, jsonify
+from flask_login import login_required, current_user
+from sqlalchemy import func
+
+from .extention import db
+from .models import Attendance, Class, Student
 
 @views.route("/dashboard")
 @login_required
@@ -110,32 +142,97 @@ def dashboard():
     if current_user.is_admin:
         return redirect(url_for("admin.index"))
 
-    teacher_classes = Class.query.filter(
-        Class.teachers.any(id=current_user.id)).all()
-    class_data = get_class_data(teacher_classes)
-    class_analysis, class_attendance = analyze_class_data(class_data)
-
-    course_types = ["BCA", "BCS", "BA"]
-
-    courses_data = {}
-    for class_ in teacher_classes:
-        if class_.course_type not in courses_data:
-            courses_data[class_.course_type] = {
-                "name": class_.course_type,
-                "total_students": 0,
-            }
-        courses_data[class_.course_type]["total_students"] += (
-            db.session.query(func.count(Student.id)).filter(
-                Student.classes.any(id=class_.id)).scalar())
+    teacher_classes = Class.query.filter(Class.teachers.any(id=current_user.id)).all()
+    class_analysis = analyze_class_data(teacher_classes)
 
     return render_template(
         "dashboard.html",
         classes=teacher_classes,
         class_analysis=class_analysis,
-        class_attendance=class_attendance,
-        course_types=course_types,
-        courses_data=courses_data,
     )
+
+@views.route("/full-screen-plot/<int:class_id>")
+@login_required
+def full_screen_plot(class_id):
+    class_ = Class.query.get_or_404(class_id)
+    class_analysis = analyze_class_data([class_])
+    return render_template("full_screen_plot.html", class_=class_, analysis=class_analysis[class_.id])
+
+def analyze_class_data(classes):
+    class_analysis = {}
+    for class_ in classes:
+        analysis = {
+            "total_students": 0,
+            "avg_attendance": 0,
+            "attendance_rate": 0,
+            "top_students": [],
+            "bottom_students": [],
+            "dates": [],
+            "attendance_counts": [],
+        }
+
+        # Get all students in this class
+        students = Student.query.filter(Student.classes.any(id=class_.id)).all()
+        analysis["total_students"] = len(students)
+
+        # Get attendance data for the last 30 days
+        end_date = datetime.now().date()
+        start_date = end_date - timedelta(days=129)
+        attendances = Attendance.query.filter(
+            Attendance.class_id == class_.id,
+            Attendance.timestamp >= start_date,
+            Attendance.timestamp <= end_date + timedelta(days=1)  # Include the entire last day
+        ).order_by(Attendance.timestamp).all()
+
+        # Process attendance data
+        date_attendance = defaultdict(int)
+        student_attendance = defaultdict(int)
+        for attendance in attendances:
+            attendance_date = attendance.timestamp.date()
+            date_attendance[attendance_date] += 1
+            student_attendance[attendance.student_id] += 1
+
+        # Calculate average attendance and attendance rate
+        total_attendance = sum(date_attendance.values())
+        num_days = len(date_attendance)
+        total_possible_attendances = analysis["total_students"] * num_days
+
+        if num_days > 0:
+            analysis["avg_attendance"] = total_attendance / num_days
+        else:
+            analysis["avg_attendance"] = 0
+
+        if total_possible_attendances > 0:
+            analysis["attendance_rate"] = (total_attendance / total_possible_attendances) * 100
+        else:
+            analysis["attendance_rate"] = 0
+
+        # Prepare data for the attendance trend chart
+        for date in (start_date + timedelta(n) for n in range(30)):
+            analysis["dates"].append(date.strftime('%Y-%m-%d'))
+            analysis["attendance_counts"].append(date_attendance[date])
+
+        # Get top and bottom students
+        student_attendance_list = [(Student.query.get(student_id), count) for student_id, count in student_attendance.items()]
+        analysis["top_students"] = sorted(student_attendance_list, key=lambda x: x[1], reverse=True)[:5]
+        analysis["bottom_students"] = sorted(student_attendance_list, key=lambda x: x[1])[:5]
+
+        class_analysis[class_.id] = analysis
+
+    return class_analysis
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def get_class_data(teacher_classes):
@@ -150,6 +247,21 @@ def get_class_data(teacher_classes):
             Class.id.in_([c.id for c in teacher_classes
                           ])).group_by(Class.id, Student.id,
                                        Attendance.status).all())
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @views.route("/course/<string:course_type>/students")
@@ -392,3 +504,13 @@ def download_csv(class_id):
         f"attachment; filename={class_.name}_attendance.csv")
     output.headers["Content-type"] = "text/csv"
     return output
+
+@views.route('/functionalities/<int:class_id>')
+@login_required
+def functionalities(class_id):
+    class_ = Class.query.get_or_404(class_id)
+    if not current_user.is_admin and class_ not in current_user.classes:
+        flash('You do not have permission to access this class.', 'danger')
+        print('You do not have permission to access this class.', 'danger')
+        return redirect(url_for('views.dashboard'))
+    return render_template('Attendance.html', class_=class_)

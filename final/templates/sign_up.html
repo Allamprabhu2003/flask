@@ -19,7 +19,7 @@
             display: flex;
             width: 80%;
             max-width: 1000px;
-            height: 650px; /* Increased height */
+            height: 650px;
             box-shadow: 0 0 50px rgba(0, 0, 0, 0.3);
             border-radius: 15px;
             overflow: hidden;
@@ -63,6 +63,7 @@
 
         .form-group {
             margin-bottom: 20px;
+            position: relative;
         }
 
         label {
@@ -112,7 +113,7 @@
             margin-top: 20px;
             text-align: center;
             font-size: 14px;
-            padding: 10px 0; /* Added padding */
+            padding: 10px 0;
         }
 
         .signup a {
@@ -177,8 +178,29 @@
             color: #56ccf2;
             border-left: 5px solid #56ccf2;
         }
+
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .form-group.error input {
+            border-color: #ff3860;
+        }
+
+        .form-group.success input {
+            border-color: #09c372;
+        }
+
+        .error-message {
+            color: #ff3860;
+            font-size: 12px;
+            position: absolute;
+            bottom: -20px;
+            left: 0;
+        }
     </style>
-</head>
+
 <body>
     <div class="notification-vibrant">
         {% with messages = get_flashed_messages(with_categories=true) %}
@@ -204,28 +226,43 @@
             <div class="form-control">
                 <h2>Sign Up</h2>
                 <form method="POST" action="{{ url_for('auth.sign_up') }}">
-                    <div class="form-group">
+                    <div class="form-group {% if errors.first_name %}error{% endif %}">
                         <label for="first_name">First Name</label>
-                        <input type="text" id="first_name" name="first_name" required>
+                        <input type="text" id="first_name" name="first_name" value="{{ form_data.first_name }}" required>
+                        {% if errors.first_name %}
+                        <div class="error-message">{{ errors.first_name }}</div>
+                        {% endif %}
                     </div>
-                    <div class="form-group">
+                    <div class="form-group {% if errors.last_name %}error{% endif %}">
                         <label for="last_name">Last Name</label>
-                        <input type="text" id="last_name" name="last_name" required>
+                        <input type="text" id="last_name" name="last_name" value="{{ form_data.last_name }}" required>
+                        {% if errors.last_name %}
+                        <div class="error-message">{{ errors.last_name }}</div>
+                        {% endif %}
                     </div>
-                    <div class="form-group">
+                    <div class="form-group {% if errors.email %}error{% endif %}">
                         <label for="email">Email</label>
-                        <input type="email" id="email" name="email" required>
+                        <input type="email" id="email" name="email" value="{{ form_data.email }}" required>
+                        {% if errors.email %}
+                        <div class="error-message">{{ errors.email }}</div>
+                        {% endif %}
                     </div>
-                    <div class="form-group">
+                    <div class="form-group {% if errors.password1 %}error{% endif %}">
                         <label for="password">Password</label>
-                        <input type="password" id="password" name="password1" required>
+                        <input type="password" id="password" name="password1" value="{{ form_data.password1 }}" required>
+                        {% if errors.password1 %}
+                        <div class="error-message">{{ errors.password1 }}</div>
+                        {% endif %}
                     </div>
-                    <div class="form-group">
+                    <div class="form-group {% if errors.password2 %}error{% endif %}">
                         <label for="confirm_password">Confirm Password</label>
-                        <input type="password" id="confirm_password" name="password2" required>
+                        <input type="password" id="confirm_password" name="password2" value="{{ form_data.password2 }}" required>
+                        {% if errors.password2 %}
+                        <div class="error-message">{{ errors.password2 }}</div>
+                        {% endif %}
                     </div>
                     <div class="form-check">
-                        <input type="checkbox" id="is_teacher" name="is_teacher">
+                        <input type="checkbox" id="is_teacher" name="is_teacher" {% if form_data.is_teacher %}checked{% endif %}>
                         <label for="is_teacher">Admin</label>
                     </div>
                     <button type="submit" class="login-button">Sign Up</button>
@@ -244,6 +281,95 @@
                 });
             });
         });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.querySelector('form');
+            const firstName = document.getElementById('first_name');
+            const lastName = document.getElementById('last_name');
+            const email = document.getElementById('email');
+            const password1 = document.getElementById('password');
+            const password2 = document.getElementById('confirm_password');
+
+            const setError = (element, message) => {
+                const formGroup = element.parentElement;
+                formGroup.classList.add('error');
+                formGroup.classList.remove('success');
+                let error = formGroup.querySelector('.error-message');
+                if (!error) {
+                    error = document.createElement('div');
+                    error.className = 'error-message';
+                    formGroup.appendChild(error);
+                }
+                error.innerText = message;
+            };
+
+            const setSuccess = (element) => {
+                const formGroup = element.parentElement;
+                formGroup.classList.add('success');
+                formGroup.classList.remove('error');
+                let error = formGroup.querySelector('.error-message');
+                if (error) {
+                    error.remove();
+                }
+            };
+
+            const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                let valid = true;
+
+                if (firstName.value.trim().length < 2) {
+                    setError(firstName, 'First name must be at least 2 characters long.');
+                    valid = false;
+                } else {
+                    setSuccess(firstName);
+                }
+
+                if (lastName.value.trim().length < 2) {
+                    setError(lastName, 'Last name must be at least 2 characters long.');
+                    valid = false;
+                } else {
+                    setSuccess(lastName);
+                }
+
+                if (!isValidEmail(email.value.trim())) {
+                    setError(email, 'Please provide a valid email address.');
+                    valid = false;
+                } else {
+                    setSuccess(email);
+                }
+
+                if (password1.value.trim().length < 7) {
+                    setError(password1, 'Password must be at least 7 characters long.');
+                    valid = false;
+                } else {
+                    setSuccess(password1);
+                }
+
+                if (password1.value.trim() !== password2.value.trim()) {
+                    setError(password2, 'Passwords do not match.');
+                    valid = false;
+                } else {
+                    setSuccess(password2);
+                }
+
+                if (valid) {
+                    form.submit();
+                }
+            });
+
+            // Optional: Validate on input change for real-time feedback
+            form.addEventListener('input', () => {
+                if (firstName.value.trim().length >= 2) setSuccess(firstName);
+                if (lastName.value.trim().length >= 2) setSuccess(lastName);
+                if (isValidEmail(email.value.trim())) setSuccess(email);
+                if (password1.value.trim().length >= 7) setSuccess(password1);
+                if (password1.value.trim() === password2.value.trim() && password2.value.trim() !== '') setSuccess(password2);
+            });
+        });
     </script>
 </body>
+
+
 </html>

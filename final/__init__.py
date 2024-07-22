@@ -253,9 +253,11 @@ from .extention import db
 from .admin import init_admin  # Import the new init_admin function
 from flask_mail import Mail
 from .config import Config
+from flask_wtf import CSRFProtect
 
 
 mail = Mail()
+csrf = CSRFProtect()
 def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
@@ -264,7 +266,8 @@ def create_app(config_class=Config):
     # app.config["SQLALCHEMY_DATABASE_URI"] = "mysql://root:1234@localhost/abd"
     # app.config.from_object(config_class)
     app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://root:1234@localhost/abd'
-
+    csrf.init_app(app)
+    # app.config['FLASK_ADMIN_SWATCH'] = 'cerulean'
     # main.init_app(app)
     mail.init_app(app)
 

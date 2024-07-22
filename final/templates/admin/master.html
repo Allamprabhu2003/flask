@@ -1,0 +1,60 @@
+{% extends admin_base_template %}
+
+{% block head_css %}
+    {{ super() }}
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/my_flask_admin.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+{% endblock %}
+
+{% block page_body %}
+<nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#admin-navbar-collapse">
+                <span class="sr-only">Toggle navigation</span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+                <span class="icon-bar"></span>
+            </button>
+            <a class="navbar-brand" href="{{ admin_view.admin.url }}">
+                <i class="fas fa-tachometer-alt"></i> {{ admin_view.admin.name }}
+            </a>
+        </div>
+        <div class="collapse navbar-collapse" id="admin-navbar-collapse">
+            <ul class="nav navbar-nav">
+                {{ layout.menu() }}
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li>
+                    <a href="{{ url_for('views.index') }}">
+                        <i class="fas fa-home"></i> Back to Site
+                    </a>
+                </li>
+                {% if current_user.is_authenticated %}
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">
+                        <i class="fas fa-user"></i> {{ current_user.email }} <span class="caret"></span>
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a href="{{ url_for('auth.logout') }}">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            {% block body %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}

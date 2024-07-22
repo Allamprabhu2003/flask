@@ -128,4 +128,4 @@ class Attendance(db.Model):
     student_id = db.Column(db.Integer, db.ForeignKey('student.id'), nullable=False)
     timestamp = db.Column(db.DateTime, default=datetime.datetime.utcnow)
     class_id = db.Column(db.Integer, db.ForeignKey("class.id"), nullable=False)
-    status = db.Column(db.String(20), nullable=False)  # 'present', 'absent', 'late'
+    status = db.Column(db.String(20), nullable=False)  # 'present', 'absent', 'late

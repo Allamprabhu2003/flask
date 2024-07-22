@@ -1,79 +1,5 @@
 <!-- <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register Student and Upload Face</title>
-    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #f8f9fa;
-        }
-        .container {
-            background-color: white;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-        }
-    </style>
-</head>
-<body>
-    <div class="container mt-5">
-        <h2 class="mb-4">Register Student and Upload Face</h2>
-        <form method="POST" action="{{ url_for('student.upload') }}" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="first_name">First Name</label>
-                <input type="text" class="form-control" id="first_name" name="first_name" required>
-            </div>
-            <div class="form-group">
-                <label for="last_name">Last Name</label>
-                <input type="text" class="form-control" id="last_name" name="last_name" required>
-            </div>
-            <div class="form-group">
-                <label for="email">Email</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="course_type">Course Type</label>
-                <select class="form-control" id="course_type" name="course_type">
-                    <option value="">Select a course type</option>
-                    {% for course_type in course_types %}
-                        <option value="{{ course_type }}">{{ course_type }}</option>
-                    {% endfor %}
-                    <option value="new">Add new course type</option>
-                </select>
-            </div>
-            <div class="form-group" id="new_course_type_div" style="display: none;">
-                <label for="new_course_type">New Course Type</label>
-                <input type="text" class="form-control" id="new_course_type" name="new_course_type">
-            </div>
-            <div class="form-group">
-                <label for="image">Face Image</label>
-                <input type="file" class="form-control-file" id="image" name="image" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Register Student and Upload Face</button>
-        </form>
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-    <script>
-        document.getElementById('course_type').addEventListener('change', function() {
-            var newCourseTypeDiv = document.getElementById('new_course_type_div');
-            if (this.value === 'new') {
-                newCourseTypeDiv.style.display = 'block';
-            } else {
-                newCourseTypeDiv.style.display = 'none';
-            }
-        });
-    </script>
-</body>
-</html> -->
-
-
-<!DOCTYPE html>
-<html lang="en">
 
 <head>
     <meta charset="UTF-8">
@@ -93,12 +19,20 @@
 
         .container {
             max-width: 800px;
+            /* Adjusted for desktop view */
             width: 90%;
+            /* Make it responsive */
             padding: 30px;
             background-color: #ffffff;
             border-radius: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             text-align: center;
+            transform: scale(0.5); /* Scale down to 50% */
+            transform-origin: center; /* Center the scaling origin */
+            position: absolute; /* Position absolutely */
+            top: -40%; /* Center vertically */
+            left: 15%; /* Center horizontally */
+            translate :(-50%, -50%); /* Adjust to center */
         }
 
         .form-group {
@@ -107,7 +41,7 @@
         }
 
         .form-control {
-            padding: 10px;
+            padding: 20px;
             font-size: 16px;
             border: 1px solid #ccc;
             border-radius: 5px;
@@ -148,13 +82,15 @@
         .btn {
             background-color: #00796b;
             color: #fff;
-            padding: 10px 20px;
+            padding: 20px 20px;
+            /* Reduced padding */
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 22px;
             margin-top: 20px;
             display: inline-block;
+            width: 500px;
         }
 
         .btn:hover {
@@ -166,6 +102,7 @@
             margin-bottom: 12px;
             font-weight: bold;
             font-size: 16px;
+            /* Reduced font size */
         }
 
         #new_course_type_div {
@@ -175,6 +112,7 @@
         h2 {
             margin-bottom: 20px;
             font-size: 24px;
+            /* Increased font size */
         }
     </style>
 </head>
@@ -184,7 +122,7 @@
         <h2>Student Register Details</h2>
         <form method="POST" action="{{ url_for('student.upload') }}" enctype="multipart/form-data">
             <div class="form-group">
-                <label for="roll_number">Roll Number</label>
+                <label for="roll_number">Roll No</label>
                 <input type="text" class="form-control" id="roll_number" name="roll_number" required>
             </div>
             <div class="form-group">
@@ -209,7 +147,7 @@
                     <option value="new">Add new course type</option>
                 </select>
             </div>
-            <div class="form-group" id="new_course_type_div">
+            <div class="form-group" id="new_course_type_div">                
                 <label for="new_course_name">New Course Name</label>
                 <input type="text" class="form-control" id="new_course_name" name="new_course_name">
             </div>
@@ -267,11 +205,221 @@
         function handleFiles(files) {
             var file = files[0];
             var fileInfo = document.getElementById('file-info');
-            fileInfo.textContent = `File name: ${file.name}`;
+            fileInfo.textContent = File name: ${file.name};
             var dropArea = document.getElementById('drop-area');
             dropArea.classList.add('uploaded');
-            dropArea.children[0].textContent = `File uploaded: ${file.name}`;
+            dropArea.children[0].textContent = File uploaded: ${file.name};
         }
+    </script>
+</body>
+
+</html> -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register Student and Upload Face</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #e0f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 90%;
+            padding: 30px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+            transform-origin: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-control {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .drag-drop {
+            padding: 20px;
+            border: 2px dashed #00796b;
+            border-radius: 5px;
+            background-color: #f0f0f0;
+            cursor: pointer;
+            position: relative;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+        .drag-drop p {
+            margin: 0;
+            color: #00796b;
+            font-size: 16px;
+        }
+
+        .drag-drop:hover {
+            background-color: #e0f7fa;
+        }
+
+        .drag-drop input[type="file"] {
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: pointer;
+        }
+
+        .btn {
+            background-color: #00796b;
+            color: #fff;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .btn:hover {
+            background-color: #004d40;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 12px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        #new_course_type_div {
+            display: none;
+        }
+
+        h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        #file-info {
+            margin-top: 10px;
+            color: #00796b;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h2>Student Register Details</h2>
+        <form method="POST" action="{{ url_for('student.upload') }}" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="roll_number">Roll No</label>
+                <input type="text" class="form-control" id="roll_number" name="roll_number" required>
+            </div>
+            <div class="form-group">
+                <label for="first_name">First Name</label>
+                <input type="text" class="form-control" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name</label>
+                <input type="text" class="form-control" id="last_name" name="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="course_type">Course Type</label>
+                <select class="form-control" id="course_type" name="course_type" required>
+                    <option value="">Select a course type</option>
+                    {% for course_type in course_types %}
+                    <option value="{{ course_type }}">{{ course_type }}</option>
+                    {% endfor %}
+                    <option value="new">Add new course type</option>
+                </select>
+            </div>
+            <div class="form-group" id="new_course_type_div">
+                <label for="new_course_name">New Course Name</label>
+                <input type="text" class="form-control" id="new_course_name" name="new_course_name">
+            </div>
+            <div class="form-group">
+                <label for="image">Face Image</label>
+                <div class="drag-drop" id="drop-area">
+                    <p>Drag & Drop your file here or click to upload</p>
+                    <input type="file" class="form-control-file" id="image" name="image" required>
+                </div>
+                <p id="file-info"></p>
+            </div>
+            <button type="submit" class="btn">Register Student</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('course_type').addEventListener('change', function () {
+            var newCourseTypeDiv = document.getElementById('new_course_type_div');
+            if (this.value === 'new') {
+                newCourseTypeDiv.style.display = 'block';
+                document.getElementById('new_course_name').setAttribute('required', 'required');
+            } else {
+                newCourseTypeDiv.style.display = 'none';
+                document.getElementById('new_course_name').removeAttribute('required');
+            }
+        });
+
+        document.getElementById('image').addEventListener('change', function () {
+            var fileInfo = document.getElementById('file-info');
+            if (this.files.length > 0) {
+                fileInfo.textContent = `File selected: ${this.files[0].name}`;
+            } else {
+                fileInfo.textContent = '';
+            }
+        });
+
+        document.querySelector('.drag-drop').addEventListener('dragover', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.add('drag-over');
+        });
+
+        document.querySelector('.drag-drop').addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+        });
+
+        document.querySelector('.drag-drop').addEventListener('drop', function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            this.classList.remove('drag-over');
+            var files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('image').files = files;
+                document.getElementById('file-info').textContent = `File selected: ${files[0].name}`;
+            }
+        });
     </script>
 </body>
 

@@ -1,105 +1,221 @@
-<!-- <!DOCTYPE html>
-<html>
-<head>
-    <title>Attendance System</title>
-</head>
-<body>
-    <h1>Welcome to the Attendance System</h1>
-    <ul>
-        {% if current_user.is_authenticated %}
-            <li><a href="{{ url_for('views.dashboard') }}">Dashboard</a></li>
-            {% for calss_ in calsses %}
-            <li><a href="{{ url_for('views.video_feed', class_id=class_.id )}}">Recognize</a></li>
-            {% endfor %}
-            <li><a href="{{ url_for('student.register_student') }}">Upload Student Face</a></li>
-            <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-        {% else %}
-            <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-            <li><a href="{{ url_for('auth.sign_up') }}">Sign Up</a></li>
-        {% endif %}
-    </ul>
-</body>
-</html> -->
-
-
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attendance System</title>
+    <title>Identification</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-            color: #333;
+            background-color: #f0f0f0;
         }
-        header {
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px 0;
-            text-align: center;
+
+        .content {
+            background-color: #003366;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+            color: #ffffff;
+            margin-top: 20px;
+            padding: 40px;
         }
-        nav ul {
-            list-style-type: none;
-            padding: 0;
+
+        .location-icon {
+            width: 50px;
+            height: 50px;
+            background-color: #ff6600;
+            border-radius: 50%;
             display: flex;
+            align-items: center;
             justify-content: center;
-            background-color: #333;
+            margin-bottom: 20px;
         }
-        nav ul li {
-            margin: 0 15px;
-        }
-        nav ul li a {
+
+        .location-icon::after {
+            content: "@";
             color: white;
-            text-decoration: none;
-            padding: 10px 20px;
-            display: block;
+            font-size: 24px;
         }
-        nav ul li a:hover {
-            background-color: #4CAF50;
+
+        .wave {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('wave.png') no-repeat;
+            background-size: cover;
+            z-index: -1;
         }
-        main {
-            padding: 20px;
-            text-align: center;
-        }
+
         footer {
-            background-color: #333;
-            color: white;
+            background: #333;
+            color: #fff;
             text-align: center;
             padding: 10px 0;
-            position: fixed;
-            width: 100%;
-            bottom: 0;
         }
     </style>
 </head>
+
 <body>
-    <header>
-        <h1>Welcome to the Attendance System</h1>
-    </header>
-    <nav>
-        <ul>
-            {% if current_user.is_authenticated %}
-                <li><a href="{{ url_for('views.dashboard') }}">Dashboard</a></li>
-                {% for class_ in classes %}
-                <li><a href="{{ url_for('views.video_feed', class_id=class_.id) }}">Recognize</a></li>
-                {% endfor %}
-                <li><a href="{{ url_for('student.register_student') }}">Upload Student Face</a></li>
-                <li><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-            {% else %}
-                <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-                <li><a href="{{ url_for('auth.sign_up') }}">Sign Up</a></li>
-            {% endif %}
-        </ul>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+        <div class="container">
+            <a class="navbar-brand" href="#">Attendance System</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('views.dashboard') }}">Dashboard</a>
+                    </li>
+                    {% endif %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#features">Features</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#how-it-works">How It Works</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#contact">Contact</a>
+                    </li>
+                    {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('auth.logout') }}">Logout</a>
+                    </li>
+                   
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
     </nav>
-    <main>
-        <p>Use the navigation bar above to access different sections of the system.</p>
-    </main>
+
+    <div class="container">
+        <div class="row align-items-center content">
+            <div class="col-md-6">
+                <div class="wave"></div>
+                <div class="location-icon"></div>
+                <h1>IDENTIFICATION</h1>
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit,oris nisi ut aliquip ex ea commodo consequat.</p>
+                <div class="buttons">
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light mr-2">LOG IN</a>
+                    <a href="{{ url_for('auth.sign_up') }}" class="btn btn-warning">SIGN IN</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-6 text-center">
+                <!-- <img src="/mnt/data/face.jpg" alt="Face Recognition" class="img-fluid rounded"> -->
+            </div>
+        </div>
+    </div>
+
+    <section id="features" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Features</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <img src="https://via.placeholder.com/150" class="card-img-top" alt="Feature 1">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Real-Time Monitoring</h5>
+                            <p class="card-text">Track attendance in real-time with our advanced computer vision algorithms.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <img src="https://via.placeholder.com/150" class="card-img-top" alt="Feature 2">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Accurate Data</h5>
+                            <p class="card-text">Ensure precise attendance records with minimal manual intervention.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <img src="https://via.placeholder.com/150" class="card-img-top" alt="Feature 3">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Easy Integration</h5>
+                            <p class="card-text">Seamlessly integrate with existing systems for smooth operation.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="how-it-works" class="py-5 bg-light">
+        <div class="container">
+            <h2 class="text-center mb-4">How It Works</h2>
+            <p class="text-center mb-5">Our system uses state-of-the-art computer vision technology to automatically detect and record attendance. Simply install our software, set up the cameras, and let the system do the rest.</p>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <img src="https://via.placeholder.com/150" class="card-img-top" alt="Step 1">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Step 1</h5>
+                            <p class="card-text">Set up cameras in your classrooms or meeting rooms.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <img src="https://via.placeholder.com/150" class="card-img-top" alt="Step 2">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Step 2</h5>
+                            <p class="card-text">Configure the software with the desired settings.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card mb-4">
+                        <img src="https://via.placeholder.com/150" class="card-img-top" alt="Step 3">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Step 3</h5>
+                            <p class="card-text">Monitor attendance automatically and generate reports.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="contact" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Contact Us</h2>
+            <form action="#" method="post" class="w-75 mx-auto">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email:</label>
+                    <input type="email" id="email" name="email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="message">Message:</label>
+                    <textarea id="message" name="message" class="form-control" rows="5" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-dark btn-block">Send Message</button>
+            </form>
+        </div>
+    </section>
+
     <footer>
-        <p>&copy; 2024 Attendance System. All rights reserved.</p>
+        <p>&copy; 2024 Automatic Attendance System. All rights reserved.</p>
     </footer>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
+
 </html>
