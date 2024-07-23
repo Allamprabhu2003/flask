@@ -19,7 +19,7 @@ from . import csrf
 from .extention import db
 from .models import Class, Face, Student
 from .utils import compute_face_encodings, face_detector
-
+from . import csrf
 student = Blueprint('student', __name__)
 
 @student.route("/register_student", methods=["GET", "POST"])
@@ -44,6 +44,114 @@ def register_student():
         return redirect(url_for("student.upload_face", student_id=new_student.id))
 
     return render_template("register_student.html")
+
+
+
+
+
+@student.route("/edit/<int:student_id>", methods=["GET", "POST"])
+@login_required
+@csrf.exempt
+def edit(student_id):
+    course_types = ["BCA", "BCS", "BA"]  # You might want to fetch this from the database
+    student = Student.query.get_or_404(student_id)
+    
+    if request.method == "POST":
+        roll_number = request.form.get("roll_number")
+        first_name = request.form.get("first_name")
+        last_name = request.form.get("last_name")
+        email = request.form.get("email")
+        course_type = request.form.get("course_type")
+        new_course_type = request.form.get("new_course_type")
+        image_file = request.files.get("image")
+        
+        if not all([roll_number, first_name, last_name, email, course_type or new_course_type]):
+            flash("All fields are required except the image.", "error")
+            return redirect(url_for("student.edit", student_id=student_id))
+        
+        if new_course_type:
+            course_type = new_course_type
+            if course_type not in course_types:
+                course_types.append(course_type)
+        
+        try:
+            # Check for duplicate roll number
+            existing_student = Student.query.filter(Student.roll_number == roll_number, Student.id != student_id).first()
+            if existing_student:
+                flash(f"A student with roll number {roll_number} already exists.", "error")
+                return redirect(url_for("student.edit", student_id=student_id))
+
+            # Check for duplicate email
+            existing_student = Student.query.filter(Student.email == email, Student.id != student_id).first()
+            if existing_student:
+                flash(f"A student with email {email} already exists.", "error")
+                return redirect(url_for("student.edit", student_id=student_id))
+
+            # Update student information
+            student.roll_number = roll_number
+            student.first_name = first_name
+            student.last_name = last_name
+            student.email = email
+            student.course_type = course_type
+
+            if image_file:
+                # Read and process the image
+                image_array = np.frombuffer(image_file.read(), np.uint8)
+                image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+                
+                if image is None:
+                    flash("Invalid image file. Please upload a valid image.", "error")
+                    return redirect(url_for("student.edit", student_id=student_id))
+                
+                # Convert the image to RGB (dlib expects RGB images)
+                rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                
+                # Detect faces
+                face_locations = face_detector(rgb_image, 1)
+                
+                if not face_locations:
+                    flash("No face detected in the image. Please try again.", "error")
+                    return redirect(url_for("student.edit", student_id=student_id))
+                
+                # Compute face encodings
+                face_encoding = compute_face_encodings(rgb_image, face_locations)[0]  # Get the first face encoding
+                
+                # Save or update the face encoding
+                face = Face.query.filter_by(student_id=student.id).first()
+                if face:
+                    face.face_encodings = face_encoding.tobytes()
+                else:
+                    face = Face(
+                        student_id=student.id,
+                        face_encodings=face_encoding.tobytes()
+                    )
+                    db.session.add(face)
+            
+            # Update the class
+            class_ = Class.query.filter_by(name=course_type, course_type=course_type).first()
+            if not class_:
+                class_ = Class(name=course_type, course_type=course_type)
+                db.session.add(class_)
+            
+            if student not in class_.students:
+                class_.students.append(student)
+            
+            db.session.commit()
+            flash("Student information updated successfully", "success")
+            return redirect(url_for("views.dashboard"))
+        
+        except Exception as e:
+            db.session.rollback()
+            flash(f"An error occurred: {str(e)}", "error")
+            return redirect(url_for("student.edit", student_id=student_id))
+    
+    return render_template("std.html", course_types=course_types, student=student)
+
+
+
+
+
+
 
 # @student.route("/upload", methods=["GET", "POST"])
 # @login_required
@@ -141,7 +249,7 @@ def register_student():
 from . import csrf
 @student.route("/upload", methods=["GET", "POST"])
 @login_required
-# @csrf.exempt
+@csrf.exempt
 def upload():
     course_types = ["BCA", "BCS", "BA"]  # You might want to fetch this from the database
     
@@ -172,15 +280,27 @@ def upload():
             course_type = new_course_type
             if course_type not in course_types:
                 course_types.append(course_type)
-        
+        # ... (previous code remains the same)
+
         try:
+            # Check for duplicate roll number
+            existing_student_by_roll = Student.query.filter_by(roll_number=roll_number).first()
+            if existing_student_by_roll:
+                flash(f"A student with roll number {roll_number} already exists.", "error")
+                return redirect(url_for("student.upload"))
+
+            # Check for duplicate email
+            existing_student_by_email = Student.query.filter_by(email=email).first()
+            if existing_student_by_email:
+                flash(f"A student with email {email} already exists.", "error")
+                return redirect(url_for("student.upload"))
+
             # Read and process the image
             image_array = np.frombuffer(image_file.read(), np.uint8)
             image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
             
             if image is None:
                 flash("Invalid image file. Please upload a valid image.", "error")
-                print("Invalid image file. Please upload a valid image.", "error")
                 return redirect(url_for("student.upload"))
             
             # Convert the image to RGB (dlib expects RGB images)
@@ -191,35 +311,28 @@ def upload():
             
             if not face_locations:
                 flash("No face detected in the image. Please try again.", "error")
-                print("No face detected in the image. Please try again.", "error")
                 return redirect(url_for("student.upload"))
             
             # Compute face encodings
             face_encoding = compute_face_encodings(rgb_image, face_locations)[0]  # Get the first face encoding
             
             # Save the student data
-            student = Student.query.filter_by(email=email).first()
-            if not student:
-                student = Student(
-                    roll_number=roll_number,
-                    first_name=first_name,
-                    last_name=last_name,
-                    email=email,
-                    course_type=course_type
-                )
-                db.session.add(student)
-                db.session.flush()
+            student = Student(
+                roll_number=roll_number,
+                first_name=first_name,
+                last_name=last_name,
+                email=email,
+                course_type=course_type
+            )
+            db.session.add(student)
+            db.session.flush()
             
-            # Save or update the face encoding
-            face = Face.query.filter_by(student_id=student.id).first()
-            if face:
-                face.face_encodings = face_encoding.tobytes()
-            else:
-                face = Face(
-                    student_id=student.id,
-                    face_encodings=face_encoding.tobytes()
-                )
-                db.session.add(face)
+            # Save the face encoding
+            face = Face(
+                student_id=student.id,
+                face_encodings=face_encoding.tobytes()
+            )
+            db.session.add(face)
             
             # Create or update the class
             class_ = Class.query.filter_by(name=course_type, course_type=course_type).first()
@@ -227,23 +340,175 @@ def upload():
                 class_ = Class(name=course_type, course_type=course_type)
                 db.session.add(class_)
             
-            if student not in class_.students:
-                class_.students.append(student)
+            class_.students.append(student)
             
             db.session.commit()
             flash("Student registered and face uploaded successfully", "success")
-            print("Student registered and face uploaded successfully", "success")
             return redirect(url_for("views.dashboard"))
-        
+
         except Exception as e:
             db.session.rollback()
             flash(f"An error occurred: {str(e)}", "error")
-            print(f"An error occurred: {str(e)}", "error")
             return redirect(url_for("student.upload"))
+
+# ... (rest of the code remains the same)
+        
+        # try:
+        #     # Read and process the image
+        #     image_array = np.frombuffer(image_file.read(), np.uint8)
+        #     image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+            
+        #     if image is None:
+        #         flash("Invalid image file. Please upload a valid image.", "error")
+        #         print("Invalid image file. Please upload a valid image.", "error")
+        #         return redirect(url_for("student.upload"))
+            
+        #     # Convert the image to RGB (dlib expects RGB images)
+        #     rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+            
+        #     # Detect faces
+        #     face_locations = face_detector(rgb_image, 1)
+            
+        #     if not face_locations:
+        #         flash("No face detected in the image. Please try again.", "error")
+        #         print("No face detected in the image. Please try again.", "error")
+        #         return redirect(url_for("student.upload"))
+            
+        #     # Compute face encodings
+        #     face_encoding = compute_face_encodings(rgb_image, face_locations)[0]  # Get the first face encoding
+            
+        #     # Save the student data
+        #     student = Student.query.filter_by(email=email).first()
+        #     if not student:
+        #         student = Student(
+        #             roll_number=roll_number,
+        #             first_name=first_name,
+        #             last_name=last_name,
+        #             email=email,
+        #             course_type=course_type
+        #         )
+        #         db.session.add(student)
+        #         db.session.flush()
+            
+        #     # Save or update the face encoding
+        #     face = Face.query.filter_by(student_id=student.id).first()
+        #     if face:
+        #         face.face_encodings = face_encoding.tobytes()
+        #     else:
+        #         face = Face(
+        #             student_id=student.id,
+        #             face_encodings=face_encoding.tobytes()
+        #         )
+        #         db.session.add(face)
+            
+        #     # Create or update the class
+        #     class_ = Class.query.filter_by(name=course_type, course_type=course_type).first()
+        #     if not class_:
+        #         class_ = Class(name=course_type, course_type=course_type)
+        #         db.session.add(class_)
+            
+        #     if student not in class_.students:
+        #         class_.students.append(student)
+            
+        #     db.session.commit()
+        #     flash("Student registered and face uploaded successfully", "success")
+        #     print("Student registered and face uploaded successfully", "success")
+        #     return redirect(url_for("views.dashboard"))
+        
+        # except Exception as e:
+        #     db.session.rollback()
+        #     flash(f"An error occurred: {str(e)}", "error")
+        #     print(f"An error occurred: {str(e)}", "error")
+        #     return redirect(url_for("student.upload"))
     
     return render_template("upload.html", course_types=course_types)
 
 
+# @student.route("/edit/<int:student_id>", methods=["GET", "POST"])
+# @login_required
+# @csrf.exempt
+# def edit(student_id):
+#     course_types = ["BCA", "BCS", "BA"]  # You might want to fetch this from the database
+#     student = Student.query.get_or_404(student_id)
+    
+#     if request.method == "POST":
+#         roll_number = request.form.get("roll_number")
+#         first_name = request.form.get("first_name")
+#         last_name = request.form.get("last_name")
+#         email = request.form.get("email")
+#         course_type = request.form.get("course_type")
+#         new_course_type = request.form.get("new_course_type")
+#         image_file = request.files.get("image")
+        
+#         if not all([roll_number, first_name, last_name, email, course_type or new_course_type]):
+#             flash("All fields are required except the image.", "error")
+#             return redirect(url_for("student.edit", student_id=student_id))
+        
+#         if new_course_type:
+#             course_type = new_course_type
+#             if course_type not in course_types:
+#                 course_types.append(course_type)
+        
+#         try:
+#             # Update student information
+#             student.roll_number = roll_number
+#             student.first_name = first_name
+#             student.last_name = last_name
+#             student.email = email
+#             student.course_type = course_type
+
+#             if image_file:
+#                 # Read and process the image
+#                 image_array = np.frombuffer(image_file.read(), np.uint8)
+#                 image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+                
+#                 if image is None:
+#                     flash("Invalid image file. Please upload a valid image.", "error")
+#                     return redirect(url_for("student.edit", student_id=student_id))
+                
+#                 # Convert the image to RGB (dlib expects RGB images)
+#                 rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+                
+#                 # Detect faces
+#                 face_locations = face_detector(rgb_image, 1)
+                
+#                 if not face_locations:
+#                     flash("No face detected in the image. Please try again.", "error")
+#                     return redirect(url_for("student.edit", student_id=student_id))
+                
+#                 # Compute face encodings
+#                 face_encoding = compute_face_encodings(rgb_image, face_locations)[0]  # Get the first face encoding
+                
+#                 # Save or update the face encoding
+#                 face = Face.query.filter_by(student_id=student.id).first()
+#                 if face:
+#                     face.face_encodings = face_encoding.tobytes()
+#                 else:
+#                     face = Face(
+#                         student_id=student.id,
+#                         face_encodings=face_encoding.tobytes()
+#                     )
+#                     db.session.add(face)
+            
+#             # Update the class
+#             class_ = Class.query.filter_by(name=course_type, course_type=course_type).first()
+#             if not class_:
+#                 class_ = Class(name=course_type, course_type=course_type)
+#                 db.session.add(class_)
+            
+#             if student not in class_.students:
+#                 class_.students.append(student)
+            
+#             db.session.commit()
+#             flash("Student information updated successfully", "success")
+#             return redirect(url_for("views.dashboard"))
+        
+#         except Exception as e:
+#             db.session.rollback()
+#             flash(f"An error occurred: {str(e)}", "error")
+#             return redirect(url_for("student.edit", student_id=student_id))
+    
+#     return render_template("std.html", course_types=course_types, student=student)
 
 from flask import jsonify
 
@@ -287,87 +552,3 @@ def delete_student():
 
 
 
-@student.route("/edit/<int:student_id>", methods=["GET", "POST"])
-@login_required
-def edit(student_id):
-    course_types = ["BCA", "BCS", "BA"]  # You might want to fetch this from the database
-    student = Student.query.get_or_404(student_id)
-    
-    if request.method == "POST":
-        roll_number = request.form.get("roll_number")
-        first_name = request.form.get("first_name")
-        last_name = request.form.get("last_name")
-        email = request.form.get("email")
-        course_type = request.form.get("course_type")
-        new_course_type = request.form.get("new_course_type")
-        image_file = request.files.get("image")
-        
-        if not all([roll_number, first_name, last_name, email, course_type or new_course_type]):
-            flash("All fields are required except the image.", "error")
-            return redirect(url_for("student.edit", student_id=student_id))
-        
-        if new_course_type:
-            course_type = new_course_type
-            if course_type not in course_types:
-                course_types.append(course_type)
-        
-        try:
-            # Update student information
-            student.roll_number = roll_number
-            student.first_name = first_name
-            student.last_name = last_name
-            student.email = email
-            student.course_type = course_type
-
-            if image_file:
-                # Read and process the image
-                image_array = np.frombuffer(image_file.read(), np.uint8)
-                image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
-                
-                if image is None:
-                    flash("Invalid image file. Please upload a valid image.", "error")
-                    return redirect(url_for("student.edit", student_id=student_id))
-                
-                # Convert the image to RGB (dlib expects RGB images)
-                rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                
-                # Detect faces
-                face_locations = face_detector(rgb_image, 1)
-                
-                if not face_locations:
-                    flash("No face detected in the image. Please try again.", "error")
-                    return redirect(url_for("student.edit", student_id=student_id))
-                
-                # Compute face encodings
-                face_encoding = compute_face_encodings(rgb_image, face_locations)[0]  # Get the first face encoding
-                
-                # Save or update the face encoding
-                face = Face.query.filter_by(student_id=student.id).first()
-                if face:
-                    face.face_encodings = face_encoding.tobytes()
-                else:
-                    face = Face(
-                        student_id=student.id,
-                        face_encodings=face_encoding.tobytes()
-                    )
-                    db.session.add(face)
-            
-            # Update the class
-            class_ = Class.query.filter_by(name=course_type, course_type=course_type).first()
-            if not class_:
-                class_ = Class(name=course_type, course_type=course_type)
-                db.session.add(class_)
-            
-            if student not in class_.students:
-                class_.students.append(student)
-            
-            db.session.commit()
-            flash("Student information updated successfully", "success")
-            return redirect(url_for("views.dashboard"))
-        
-        except Exception as e:
-            db.session.rollback()
-            flash(f"An error occurred: {str(e)}", "error")
-            return redirect(url_for("student.edit", student_id=student_id))
-    
-    return render_template("std.html", course_types=course_types, student=student)

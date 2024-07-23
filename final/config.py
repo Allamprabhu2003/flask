@@ -27,3 +27,5 @@ class Config:
     MAIL_PASSWORD =  "Your app password" # your email password
     # MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER')
     MAIL_DEFAULT_SENDER = "allamprabhuhiremath9@gmail.com"
+
+

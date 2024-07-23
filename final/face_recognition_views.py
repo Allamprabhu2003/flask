@@ -212,6 +212,7 @@ def video_feed(class_id):
 
 @face_recognition.route("/change_video_source/<int:class_id>", methods=["GET", "POST"])
 @login_required
+@csrf.exempt
 def change_video_source(class_id):
     if request.method == "POST":
         video_source = request.form.get("video_source")

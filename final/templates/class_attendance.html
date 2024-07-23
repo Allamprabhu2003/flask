@@ -5,187 +5,201 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Class Attendance</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <style>
         body {
-            background: linear-gradient(to right, #f0f4f8, #c9d6e9);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 15px;
         }
 
         .header-container {
-            margin-bottom: 20px;
-            background-color: #00aaff;
-            color: #fff;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
+            background-color: #ffffff;
+            color: #333;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
         }
 
         .header-container h1 {
-            margin: 0;
-            font-size: 2rem;
+            margin: 0 0 1rem;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #2c3e50;
         }
 
         .search-container {
             display: flex;
             flex-wrap: wrap;
+            gap: 1rem;
             align-items: center;
-            margin-top: 10px;
         }
 
         .search-container input,
         .search-container .btn {
-            margin: 5px;
+            flex-grow: 1;
+            min-width: 120px;
+        }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: all 0.3s ease;
         }
 
         .btn-primary {
-            background-color: #1abc9c;
-            border: none;
-            color: #fff;
+            background-color: #3498db;
+            border-color: #3498db;
         }
 
         .btn-primary:hover {
-            background-color: #16a085;
+            background-color: #2980b9;
+            border-color: #2980b9;
         }
 
         .btn-warning {
             background-color: #f39c12;
-            border: none;
-            color: #fff;
+            border-color: #f39c12;
         }
 
         .btn-warning:hover {
-            background-color: #e08e0b;
+            background-color: #e67e22;
+            border-color: #e67e22;
         }
 
         .btn-secondary {
-            background-color: #8e44ad;
-            border: none;
-            color: #fff;
+            background-color: #95a5a6;
+            border-color: #95a5a6;
         }
 
         .btn-secondary:hover {
-            background-color: #732d91;
+            background-color: #7f8c8d;
+            border-color: #7f8c8d;
+        }
+
+        .table-responsive {
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table {
+            margin-bottom: 0;
         }
 
         .table th {
-            background-color: #3498db;
-            color: #fff;
-            border-bottom: 2px solid #2980b9;
-            text-align: center;
-            font-weight: bold;
+            background-color: #34495e;
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+            border: none;
         }
 
         .table td {
-            text-align: center;
             vertical-align: middle;
+            border-color: #ecf0f1;
         }
 
-        .table-striped tbody tr:nth-of-type(odd) {
-            background-color: #ffffff;
+        .status-present, .status-absent, .status-late, .status-excused {
+            padding: 0.25rem 0.5rem;
+            border-radius: 50px;
+            font-weight: 600;
         }
 
         .status-present {
             background-color: #2ecc71;
-            color: #fff;
-            font-weight: bold;
+            color: #ffffff;
         }
 
         .status-absent {
             background-color: #e74c3c;
-            color: #fff;
-            font-weight: bold;
+            color: #ffffff;
         }
 
         .status-late {
             background-color: #f39c12;
-            color: #fff;
-            font-weight: bold;
+            color: #ffffff;
         }
 
         .status-excused {
             background-color: #3498db;
-            color: #fff;
-            font-weight: bold;
+            color: #ffffff;
         }
-
-        .table-hover tbody tr:hover {
-            background-color: #d6eaf8;
-        }
-
-       
 
         @media (max-width: 768px) {
-            .header-container {
-                flex-direction: column;
-                text-align: center;
+            .header-container h1 {
+                font-size: 2rem;
             }
 
             .search-container {
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .header-container h1 {
-                font-size: 1.5rem;
+                flex-direction: column;
             }
 
             .search-container input,
             .search-container .btn {
                 width: 100%;
-                margin: 5px 0;
             }
         }
     </style>
 </head>
 <body onload="fetchAttendance()">
     <div class="container">
-
-   
-    <div class="header-container">
-        <h1>Attendance for {{ class_.name }}</h1>
-        <a href="{{ url_for('views.download_pdf', class_id=class_.id) }}" class="btn btn-sm btn-outline-secondary float-end">
-            <i class="fas fa-file-pdf"></i> Download PDF
-        </a>
-        <a href="{{ url_for('views.download_csv', class_id=class_.id) }}" class="btn btn-sm btn-outline-secondary float-end me-2">
-            <i class="fas fa-file-csv"></i> Download CSV
-        </a> 
-        <div class="search-container">
-            <input type="date" id="datePicker" class="form-control" onchange="fetchAttendance()">
-            <input type="text" id="searchInput" class="form-control" placeholder="Search students...">
-            <button class="btn btn-primary ml-2" onclick="searchStudents()">Search</button>
-            <button class="btn btn-warning ml-2" onclick="showAbsent()">Absent</button>
-            <a href="{{ url_for('views.dashboard') }}" class="btn btn-secondary ml-2">Back to Dashboard</a>
+        <div class="header-container">
+            <h1>Attendance for {{ class_.name }}</h1>
+            <div class="search-container">
+                <input type="date" id="datePicker" class="form-control" onchange="fetchAttendance()">
+                <input type="text" id="searchInput" class="form-control" placeholder="Search students...">
+                <button class="btn btn-primary" onclick="searchStudents()">
+                    <i class="fas fa-search"></i> Search
+                </button>
+                <button class="btn btn-warning" onclick="showAbsent()">
+                    <i class="fas fa-user-times"></i> Show Absent
+                </button>
+                <a href="{{ url_for('attendance.download_csv', class_id=class_.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-file-csv"></i> Download CSV
+                </a>
+                <a href="{{ url_for('views.download_pdf', class_id=class_.id) }}" class="btn btn-secondary">
+                    <i class="fas fa-file-pdf"></i> Download PDF
+                </a>
+                <a href="{{ url_for('views.dashboard') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+        </div>
+        
+        <div class="table-responsive">
+            <table id="attendanceTable" class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th onclick="sortTable(0)">Sl.No</th>
+                        <th onclick="sortTable(1)">Roll No</th>
+                        <th onclick="sortTable(2)">Student Name</th>
+                        <th onclick="sortTable(3)">Day</th>
+                        <th onclick="sortTable(4)">DATE | Time</th>
+                        <th onclick="sortTable(5)">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Table rows will be populated dynamically -->
+                </tbody>
+            </table>
         </div>
     </div>
-    
-    <table id="attendanceTable" class="table table-bordered table-hover table-striped">
-        <thead class="thead-dark">
-            <tr>
-                <th onclick="sortTable(0)">Sl.No</th>
-                <th onclick="sortTable(1)">Roll No</th>
-                <th onclick="sortTable(2)">Student Name</th>
-                <th onclick="sortTable(3)">Day</th>
-                <th onclick="sortTable(4)">DATE | Time</th>
-                <th onclick="sortTable(5)">Status</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Table rows will be populated dynamically -->
-        </tbody>
-    </table>
-</div>
+
     <script>
         function fetchAttendance() {
             const selectedDate = $("#datePicker").val() || new Date().toISOString().split('T')[0];
             const url = `/attendance/{{ class_.id }}/attendance_records?date=${selectedDate}`;
-            console.log(url);  // Log URL to debug
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -202,23 +216,7 @@
                 const formattedDate = timestamp.toLocaleString('en-US', { timeZone: 'Asia/Kolkata' });
                 const day = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][timestamp.getDay()];
                 const status = record.status || 'Present';
-                let statusClass;
-                switch (status.toLowerCase()) {
-                    case 'present':
-                        statusClass = 'status-present';
-                        break;
-                    case 'absent':
-                        statusClass = 'status-absent';
-                        break;
-                    case 'late':
-                        statusClass = 'status-late';
-                        break;
-                    case 'excused':
-                        statusClass = 'status-excused';
-                        break;
-                    default:
-                        statusClass = '';
-                }
+                const statusClass = `status-${status.toLowerCase()}`;
                 tbody.append(`
                     <tr>
                         <td>${index + 1}</td>
@@ -226,9 +224,7 @@
                         <td>${record.student_name}</td>
                         <td>${day}</td>
                         <td>${formattedDate}</td>
-                   
-                        <td class="${statusClass}">${status}</td>
-
+                        <td><span class="${statusClass}">${status}</span></td>
                     </tr>
                 `);
             });
@@ -263,10 +259,7 @@
                 $('#attendanceTable tbody').append(row);
             });
         }
-
-        // setInterval(fetchAttendance, 5000);  // Fetch attendance every 5 seconds -->
     </script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-
 </body>
 </html>

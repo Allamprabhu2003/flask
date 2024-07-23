@@ -25,8 +25,11 @@ def edit_class(class_id):
 
     return render_template("edit_class.html", class_=class_)
 
+from . import csrf
+
 @class_views.route("/class/add", methods=["GET", "POST"])
 @login_required
+@csrf.exempt
 def add_class():
     if not (current_user.is_admin or current_user.can_add_classes):
         flash("You do not have permission to add classes", "danger")
@@ -47,36 +50,64 @@ def add_class():
     
     return render_template("dashboard.html", course_types=course_types)
 
+from . import csrf
+# @class_views.route("/delete_class/<int:class_id>", methods=["GET", "POST"])
+# @login_required
+# @csrf.exempt
+# def delete_class(class_id):
+#     if not (current_user.is_admin or current_user.can_delete_classes):
+#         print("You do not have permission to delete classes")
+#         return jsonify(success=False, message="You do not have permission to delete classes"), 403
 
-@class_views.route("/delete_class/<int:class_id>", methods=["GET", "POST"])
+#     class_ = Class.query.get_or_404(class_id)
+#     if current_user not in class_.teachers:
+#         print("You do not have permission to delete this class")
+#         return jsonify(success=False, message="You do not have permission to delete this class"), 403
+
+#     try:
+#         if class_.attendances:
+#             if request.json.get('confirm_delete') == 'yes':
+#                 db.session.delete(class_)
+#                 db.session.commit()
+#                 print("Class '{class_.name}' and all associated attendance records have been deleted.")
+#                 return jsonify(success=True, message=f"Class '{class_.name}' and all associated attendance records have been deleted.")
+#             else:
+#                 print("Please confirm deletion of class and associated records.")
+#                 return jsonify(success=False, message="Please confirm deletion of class and associated records."), 400
+            
+#         else:
+#             db.session.delete(class_)
+#             db.session.commit()
+#             print(f"Class '{class_.name}' has been deleted.")
+#             return jsonify(success=True, message=f"Class '{class_.name}' has been deleted.")
+#     except Exception as e:
+#         print("Here =========================== ", e)
+#         db.session.rollback()
+#         return jsonify(success=False, message=str(e)), 500
+
+@class_views.route("/delete_class/<int:class_id>", methods=["POST"])
 @login_required
+@csrf.exempt
 def delete_class(class_id):
     if not (current_user.is_admin or current_user.can_delete_classes):
         print("You do not have permission to delete classes")
         return jsonify(success=False, message="You do not have permission to delete classes"), 403
-
+    
     class_ = Class.query.get_or_404(class_id)
     if current_user not in class_.teachers:
         print("You do not have permission to delete this class")
         return jsonify(success=False, message="You do not have permission to delete this class"), 403
-
+    
     try:
-        if class_.attendances:
-            if request.json.get('confirm_delete') == 'yes':
-                db.session.delete(class_)
-                db.session.commit()
-                print("Class '{class_.name}' and all associated attendance records have been deleted.")
-                return jsonify(success=True, message=f"Class '{class_.name}' and all associated attendance records have been deleted.")
-            else:
-                print("Please confirm deletion of class and associated records.")
-                return jsonify(success=False, message="Please confirm deletion of class and associated records."), 400
-            
-        else:
+        if request.json and request.json.get('confirm_delete') == 'yes':
             db.session.delete(class_)
             db.session.commit()
-            print(f"Class '{class_.name}' has been deleted.")
-            return jsonify(success=True, message=f"Class '{class_.name}' has been deleted.")
+            print(f"Class '{class_.name}' and all associated attendance records have been deleted.")
+            return jsonify(success=True, message=f"Class '{class_.name}' and all associated attendance records have been deleted.")
+        else:
+            print("Delete confirmation required.")
+            return jsonify(success=False, message="Delete confirmation required."), 400
     except Exception as e:
-        print(e)
+        print("Here =========================== ", e)
         db.session.rollback()
         return jsonify(success=False, message=str(e)), 500

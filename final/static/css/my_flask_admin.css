@@ -4,6 +4,7 @@ body {
     font-family: 'Roboto', sans-serif;
     background-color: #f0f4f8;
     color: #333;
+    
 }
 
 /* Navbar styles */
@@ -11,12 +12,20 @@ body {
     background-color: #2c3e50;
     border-color: #2c3e50;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* margin-bottom: 100px; */
 }
 
 .navbar-default .navbar-brand,
 .navbar-default .navbar-nav > li > a {
     color: #060d0e;
     transition: all 0.3s ease;
+}
+
+.container-fluid {
+    padding-top: none;
+}
+.col-md-12{
+    margin-top: 60px;
 }
 
 .navbar-default .navbar-brand {
@@ -114,23 +123,29 @@ body {
 
 .panel-info > .panel-heading {
     background-color: #3498db;
+   
+    background-image: none;
     color: white;
     border: none;
 }
 
 .panel-success > .panel-heading {
     background-color: #2ecc71;
+    
+    background-image: none;
     color: white;
     border: none;
 }
 
 .panel-warning > .panel-heading {
     background-color: #f39c12;
+    background-image: none;
     color: white;
     border: none;
 }
 
 .panel-danger > .panel-heading {
+    background-image: none;
     background-color: #e74c3c;
     color: white;
     border: none;

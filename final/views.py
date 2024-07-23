@@ -141,6 +141,8 @@ from .models import Attendance, Class, Student
 def dashboard():
     if current_user.is_admin:
         return redirect(url_for("admin.index"))
+    
+    course_types = ["BCA", "BCS", "BA"]
 
     teacher_classes = Class.query.filter(Class.teachers.any(id=current_user.id)).all()
     class_analysis = analyze_class_data(teacher_classes)
@@ -149,6 +151,7 @@ def dashboard():
         "dashboard.html",
         classes=teacher_classes,
         class_analysis=class_analysis,
+        course_types=course_types,
     )
 
 @views.route("/full-screen-plot/<int:class_id>")
