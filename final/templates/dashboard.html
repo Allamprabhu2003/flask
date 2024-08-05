@@ -22,11 +22,13 @@
         }
 
         .navbar {
-            background-color: var(--primary-color);
+            background-color: rgb(20, 88, 225);
             padding: 0.5rem 1rem;
+            height: 80px;
         }
 
-        .navbar-brand, .nav-link {
+        .navbar-brand,
+        .nav-link {
             color: white !important;
         }
 
@@ -43,7 +45,9 @@
         }
 
         #sidebar.active {
-            left: 0;
+           left: 0;
+           top: 65px;
+           width: 185px;
         }
 
         #sidebar .nav-link {
@@ -51,6 +55,14 @@
             padding: 10px 20px;
             transition: 0.2s;
         }
+        .navbar-brand {
+    padding-top: .3125rem;
+    padding-bottom: .3125rem;
+    margin-right: 1rem;
+    font-size: 2.25rem;
+    text-decoration: none;
+    white-space: nowrap;
+}
 
         #sidebar .nav-link:hover {
             background-color: rgba(255, 255, 255, 0.1);
@@ -59,7 +71,13 @@
         #content {
             transition: margin-left 0.3s;
             padding: 20px;
-            margin-top: 56px;
+            margin-top: -50px;
+            right: ;
+        }
+        #nav-link {
+            transition: margin-left 0.3s;
+            padding: 20px;
+            margin-top: 80px;
         }
 
         .class-card {
@@ -75,7 +93,7 @@
         }
 
         .btn-custom {
-            background-color: var(--primary-color);
+            background-color: rgb(20, 88, 225);
             color: white;
             border: none;
             transition: 0.3s;
@@ -99,8 +117,8 @@
         }
 
         .profile-pic {
-            width: 32px;
-            height: 32px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             margin-right: 10px;
         }
@@ -122,24 +140,143 @@
         .class-actions .btn {
             flex: 1 0 calc(50% - 0.25rem);
         }
+
+        .notification-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            max-width: 300px;
+            z-index: 10000000;
+        }
+
+        .alert {
+            padding: 5px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            color: white;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-danger {
+            background-color: #ff4e50;
+        }
+
+        .alert-success {
+            background-color: #2e7deb;
+        }
+
+        .alert-warning {
+            background-color: #f7971e;
+        }
+
+        .alert-info {
+            background-color: #4bda09;
+        }
+
+        .alert-icon {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .close-btn {
+            margin-left: auto;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .analysis-card {
+        border: none;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.3s ease-in-out;
+    }
+
+    .analysis-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .graph-container {
+        position: relative;
+        padding: 20px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .attendance-chart {
+        max-height: 300px;
+    }
+
+    .full-screen-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+    }
+
+    .stat-list {
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .stat-item {
+        transition: background-color 0.3s ease;
+    }
+
+    .stat-item:hover {
+        background-color: #e9ecef;
+    }
+
+    .stat-label {
+        font-weight: bold;
+    }
+
+    .stat-value {
+        font-size: 1.1em;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideIn {
+        from { transform: translateY(20px); }
+        to { transform: translateY(0); }
+    }
+
+    #analysisSection {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .analysis-card {
+        animation: slideIn 0.5s ease-out;
+    }
+        
     </style>
 </head>
 
 <body>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
+    <div class="notification-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        <div class="alert alert-dismissible fade show">
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}" role="alert">
-                {{ message }}
-            </div>
-            {% endfor %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">
+            <span class="alert-icon">&#9888;</span>
+            <span>{{ message }}</span>
+            <button type="button" class="close-btn">&times;</button>
         </div>
+        {% endfor %}
         {% endif %}
         {% endwith %}
+    </div>
 
-    
+
+
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container-fluid">
             <span id="menuToggle" onclick="toggleSidebar()">
@@ -186,9 +323,9 @@
         </ul>
     </div>
 
-    <div id="content">
+    <div id="nav-link">
         <div class="container">
-            <h2 class="mb-4">Dashboard</h2>
+            <h2 class="mb-4"></h2>
 
             <div id="classesSection">
                 <div class="row">
@@ -215,13 +352,18 @@
                                     class="btn btn-sm btn-secondary">
                                     <i class="fas fa-edit"></i> Edit
                                 </a>
+                                <a href="{{ url_for('manual_attendance.manual_attendance_class', class_id=class_.id) }}"
+                                class="btn btn-sm btn-secondary">
+                                <i class="fas fa-edit"></i> Attend
+                            </a>
                                 {% endif %}
                                 {% if current_user.can_delete_classes %}
-                              
-                              <a href="javascript:void(0);" onclick="deleteClass({{ class_.id }})" class="btn btn-sm btn-danger">
-                                <i class="fas fa-trash"></i> Delete Class
-                            </a>
-                            
+
+                                <a href="javascript:void(0);" onclick="deleteClass({{ class_.id }})"
+                                    class="btn btn-sm btn-danger">
+                                    <i class="fas fa-trash"></i> Delete Class
+                                </a>
+
 
                                 {% endif %}
                             </div>
@@ -230,7 +372,6 @@
                     {% endfor %}
                 </div>
             </div>
-            
 
 
             <script type="text/javascript">
@@ -266,50 +407,263 @@
                 }
             </script>
 
+
             <div id="analysisSection" style="display: none;">
-                <div id="content">
+                <!-- <div id="content">
                     <div class="container mt-5">
-                        <h2 class="mb-4">Enhanced Attendance Dashboard</h2>
-                        
+                        <h2 class="mb-4"> Attendance Analytics</h2>
+                
                         {% for class_ in classes %}
-                        <div class="card mt-4">
-                            <div class="card-header">
-                                <h3>{{ class_.name }} - Attendance Analysis</h3>
+                        <div class="card mt-4 analysis-card">
+                            <div class="card-header bg-primary text-white">
+                                <h3 class="mb-0">{{ class_.name }} - Attendance Insights</h3>
                             </div>
                             <div class="card-body">
                                 <div class="row">
-                                    <div class="col-md-8 position-relative">
-                                        <a href="{{ url_for('views.full_screen_plot', class_id=class_.id) }}" class="btn btn-primary btn-sm full-screen-btn" target="_blank">
+                                    <div class="col-md-8 position-relative graph-container">
+                                        <a href="{{ url_for('views.full_screen_plot', class_id=class_.id) }}"
+                                            class="btn btn-outline-primary btn-sm full-screen-btn" target="_blank">
                                             <i class="fas fa-expand"></i> Full Screen
                                         </a>
-                                        <canvas id="attendanceChart{{ class_.id }}"></canvas>
+                                        <canvas id="attendanceChart{{ class_.id }}" class="attendance-chart"></canvas>
                                     </div>
                                     <div class="col-md-4">
-                                        <h4>Class Statistics</h4>
-                                        <ul class="list-group">
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                Total Students
-                                                <span class="badge bg-primary rounded-pill">{{ class_analysis[class_.id]['total_students'] }}</span>
+                                        <h4 class="text-primary mb-3">Class Statistics</h4>
+                                        <ul class="list-group stat-list">
+                                            <li class="list-group-item d-flex justify-content-between align-items-center stat-item">
+                                                <span class="stat-label"><i class="fas fa-users"></i> Total Students</span>
+                                                <span class="badge bg-primary rounded-pill stat-value">
+                                                    {{ class_analysis[class_.id]['total_students'] }}
+                                                </span>
                                             </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                Average Attendance
-                                                <span class="badge bg-primary rounded-pill">{{ class_analysis[class_.id]['avg_attendance']|round(2) }}</span>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center stat-item">
+                                                <span class="stat-label"><i class="fas fa-chart-line"></i> Average Attendance</span>
+                                                <span class="badge bg-success rounded-pill stat-value">
+                                                    {{ class_analysis[class_.id]['avg_attendance']|round(2) }}
+                                                </span>
                                             </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center">
-                                                Attendance Rate
-                                                <span class="badge bg-primary rounded-pill">{{ class_analysis[class_.id]['attendance_rate']|round(2) }}%</span>
+                                            <li class="list-group-item d-flex justify-content-between align-items-center stat-item">
+                                                <span class="stat-label"><i class="fas fa-percentage"></i> Attendance Rate</span>
+                                                <span class="badge bg-info rounded-pill stat-value">
+                                                    {{ class_analysis[class_.id]['attendance_rate']|round(2) }}%
+                                                </span>
                                             </li>
                                         </ul>
                                     </div>
                                 </div>
-                                <!-- Rest of the card content remains the same -->
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                 </div>
-              
+
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script>
+                    {% for class_ in classes %}
+                    var ctx{{ class_.id }} = document.getElementById('attendanceChart{{ class_.id }}').getContext('2d');
+                    var attendanceData{{ class_.id }} = {
+                        labels: {{ class_analysis[class_.id]['dates'] | tojson }},
+                        datasets: [{
+                            label: 'Attendance',
+                            data: {{ class_analysis[class_.id]['attendance_counts'] | tojson }},
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgb(75, 192, 192)',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    };
+                    var chart{{ class_.id }} = new Chart(ctx{{ class_.id }}, {
+                        type: 'line',
+                        data: attendanceData{{ class_.id }},
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Students'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Date'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Attendance Trend',
+                                    font: {
+                                        size: 18
+                                    }
+                                },
+                                legend: {
+                                    display: false
+                                }
+                            },
+                            animation: {
+                                duration: 1500,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                    {% endfor %}
+                </script> -->
+
+
+
+
+                <div class="container mt-5">
+                    <h2 class="mb-4">Class Analysis Dashboard</h2>
+                    
+                    {% for class_ in classes %}
+                    <div class="card analysis-card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h3 class="mb-0">{{ class_.name }} - Attendance Insights</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-8 mb-4">
+                                    <div class="graph-container">
+                                        <a href="{{ url_for('views.full_screen_plot', class_id=class_.id) }}" class="btn btn-primary btn-sm full-screen-btn" target="_blank">
+                                            <i class="fas fa-expand"></i> Full Screen
+                                        </a>
+                                        <canvas id="attendanceChart{{ class_.id }}"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <h4 class="text-primary mb-3">Class Statistics</h4>
+                                    <ul class="list-group">
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Total Students
+                                            <span class="badge bg-primary rounded-pill">
+                                                {{ class_analysis[class_.id]['total_students'] }}
+                                            </span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Average Attendance
+                                            <span class="badge bg-success rounded-pill">
+                                                {{ class_analysis[class_.id]['avg_attendance']|round(2) }}
+                                            </span>
+                                        </li>
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            Attendance Rate
+                                            <span class="badge bg-info rounded-pill">
+                                                {{ class_analysis[class_.id]['attendance_rate']|round(2) }}%
+                                            </span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row mt-4">
+                                <div class="col-md-6">
+                                    <h5 class="text-success">Top 5 Attended Students</h5>
+                                    <ul class="list-group student-list">
+                                        {% for student, count in class_analysis[class_.id]['top_students'][:5] %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ student.first_name }} {{ student.last_name }}
+                                            <span class="badge bg-success rounded-pill">{{ count }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5 class="text-danger">Bottom 5 Attended Students</h5>
+                                    <ul class="list-group student-list">
+                                        {% for student, count in class_analysis[class_.id]['bottom_students'][:5] %}
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            {{ student.first_name }} {{ student.last_name }}
+                                            <span class="badge bg-danger rounded-pill">{{ count }}</span>
+                                        </li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- 
+                <script>
+                {% for class_ in classes %}
+                (function() {0
+                    var ctx = document.getElementById('attendanceChart{{ class_.id }}').getContext('2d');
+                    var attendanceData = {
+                        labels: {{ class_analysis[class_.id]['dates'] | tojson }},
+                        datasets: [{
+                            label: 'Attendance',
+                            data: {{ class_analysis[class_.id]['attendance_counts'] | tojson }},
+                            borderColor: 'rgb(75, 192, 192)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgb(75, 192, 192)',
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    };
+                    new Chart(ctx, {
+                        type: 'line',
+                        data: attendanceData,
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    title: {
+                                        display: true,
+                                        text: 'Number of Students'
+                                    }
+                                },
+                                x: {
+                                    title: {
+                                        display: true,
+                                        text: 'Date'
+                                    }
+                                }
+                            },
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Attendance Trend',
+                                    font: {
+                                        size: 18
+                                    }
+                                },
+                                legend: {
+                                    display: false
+                                },
+                                tooltip: {
+                                    mode: 'index',
+                                    intersect: false,
+                                }
+                            },
+                            interaction: {
+                                mode: 'nearest',
+                                axis: 'x',
+                                intersect: false
+                            },
+                            animation: {
+                                duration: 1000,
+                                easing: 'easeInOutQuart'
+                            }
+                        }
+                    });
+                })();
+                {% endfor %}
+                </script> -->
                 <script>
                     {% for class_ in classes %}
                     var ctx{{ class_.id }} = document.getElementById('attendanceChart{{ class_.id }}').getContext('2d');
@@ -370,7 +724,9 @@
                     {% endfor %}
                     </script>
                 
-                
+            
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+
             </div>
         </div>
     </div>
@@ -407,23 +763,21 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
 
-        
-        // ... (keep the existing JavaScript code)
-        function toggleSidebar() {
-        document.getElementById("sidebar").classList.toggle("active");
-        document.getElementById("content").style.marginLeft = document.getElementById("sidebar").classList.contains("active") ? "250px" : "0";
-    }
+    function toggleSidebar() {
+            document.getElementById("sidebar").classList.toggle("active");
+            document.getElementById("content").style.marginLeft = document.getElementById("sidebar").classList.contains("active") ? "250px" : "0";
+        }
 
-    function showAllClasses() {
-        document.getElementById("classesSection").style.display = "block";
-        document.getElementById("analysisSection").style.display = "none";
-    }
+        function showAllClasses() {
+            document.getElementById("classesSection").style.display = "block";
+            document.getElementById("analysisSection").style.display = "none";
+        }
 
-    function showAnalysis() {
-        document.getElementById("classesSection").style.display = "none";
-        document.getElementById("analysisSection").style.display = "block";
-    }
-    
+        function showAnalysis() {
+            document.getElementById("classesSection").style.display = "none";
+            document.getElementById("analysisSection").style.display = "block";
+        }
+
     </script>
 </body>
 

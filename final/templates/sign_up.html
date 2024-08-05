@@ -226,6 +226,7 @@
             <div class="form-control">
                 <h2>Sign Up</h2>
                 <form method="POST" action="{{ url_for('auth.sign_up') }}">
+                    {{ form.csrf_token() }}
                     <div class="form-group {% if errors.first_name %}error{% endif %}">
                         <label for="first_name">First Name</label>
                         <input type="text" id="first_name" name="first_name" value="{{ form_data.first_name }}" required>
@@ -313,10 +314,23 @@
                 }
             };
 
-            const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+       
+              console.log(isValidEmail('dsakadsk@123gmail.com')); // false
+              console.log(isValidEmail('user@example.com')); // true
+              console.log(isValidEmail('abc.123gmail.com')); // false
+              console.log(isValidEmail('abc@123gai.com')); // false
+              console.log(isValidEmail('valid@email.org')); // true
+            // const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
             form.addEventListener('submit', (e) => {
+
                 e.preventDefault();
+                
+              console.log(isValidEmail('dsakadsk@123gmail.com')); // false
+              console.log(isValidEmail('user@example.com')); // true
+              console.log(isValidEmail('abc.123gmail.com')); // false
+              console.log(isValidEmail('abc@123gai.com')); // false
+              console.log(isValidEmail('valid@email.org')); // true
                 let valid = true;
 
                 if (firstName.value.trim().length < 2) {
@@ -336,6 +350,11 @@
                 if (!isValidEmail(email.value.trim())) {
                     setError(email, 'Please provide a valid email address.');
                     valid = false;
+
+
+
+
+                    
                 } else {
                     setSuccess(email);
                 }

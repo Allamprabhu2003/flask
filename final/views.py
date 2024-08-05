@@ -127,14 +127,16 @@ def index():
 
 
 
-from datetime import datetime, timedelta
 from collections import defaultdict
-from flask import render_template, jsonify
-from flask_login import login_required, current_user
+from datetime import datetime, timedelta
+
+from flask import jsonify, render_template
+from flask_login import current_user, login_required
 from sqlalchemy import func
 
 from .extention import db
 from .models import Attendance, Class, Student
+
 
 @views.route("/dashboard")
 @login_required
@@ -172,6 +174,7 @@ def analyze_class_data(classes):
             "bottom_students": [],
             "dates": [],
             "attendance_counts": [],
+            
         }
 
         # Get all students in this class
@@ -269,14 +272,24 @@ def get_class_data(teacher_classes):
 
 @views.route("/course/<string:course_type>/students")
 @login_required
-def student_list(course_type):
+def student_list(course_type: str) -> None:
     try:
-        students = (Student.query.join(Student.classes).filter(
-            Class.course_type == course_type).distinct().all())
+        # students = (Student.query.join(Student.classes).filter(
+        #     Class.course_type == course_type).distinct().all())
+        # students = (Student.query
+        #     .join(Student.classes)
+        #     .filter(Class.course_type == course_type)
+        #     .distinct()
+        #     .all())
+        students = (
+            Student.query.join(Class, Student.course_type == Class.course_type)
+            .filter(Class.course_type == course_type)
+            .distinct()
+            .all()
+        )
 
         if not students:
-            flash(f"No students found for course type '{course_type}'",
-                  "warning")
+            flash(f"No students found for course type '{course_type}'", "warning")
             return redirect(url_for("views.dashboard"))
 
         student_data = []
@@ -288,28 +301,35 @@ def student_list(course_type):
             }
             student_data.append(student_info)
 
-        return render_template("student_list.html",
-                               course_type=course_type,
-                               students=student_data)
+        return render_template(
+            "student_list.html", course_type=course_type, students=student_data
+        )
 
     except Exception as e:
-        flash(f"An error occurred while retrieving the student list: {str(e)}",
-              "danger")
+        flash(
+            f"An error occurred while retrieving the student list: {str(e)}", "danger"
+        )
         return redirect(url_for("views.dashboard"))
 
-
 import csv
+from collections import defaultdict
+from datetime import datetime, timedelta
 from io import BytesIO, StringIO
 
 import matplotlib.pyplot as plt
-from flask import make_response, send_file
+from flask import (Blueprint, flash, make_response, redirect, render_template,
+                   send_file, url_for)
+from flask_login import current_user, login_required
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import landscape, letter
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.platypus import (Image, Paragraph, SimpleDocTemplate, Table,
                                 TableStyle)
+from sqlalchemy import func  # Import func from SQLAlchemy
 
-from .models import Student  # Make sure to import the Student model
+from .extention import db
+from .models import Attendance, Class, Student
+from .student_views import get_course_types_from_db
 
 
 @views.route("/download_pdf/<int:class_id>")
@@ -319,7 +339,8 @@ def download_pdf(class_id):
 
     # Get the class data and analyze it
     class_data = get_class_data([class_])
-    class_analysis, class_attendance = analyze_class_data(class_data)
+    classes = [i[0] for i in class_data]
+    class_analysis = analyze_class_data(classes)
 
     # Create a file-like buffer to receive PDF data
     buffer = BytesIO()
@@ -337,77 +358,64 @@ def download_pdf(class_id):
     # Add general statistics
     elements.append(Paragraph("General Statistics", styles["Heading2"]))
     general_stats = [
-        ["Total Students",
-         str(class_analysis[class_.id]["total_students"])],
-        [
-            "Average Attendance",
-            f"{class_analysis[class_.id]['avg_attendance']:.2f}"
-        ],
-        [
-            "Attendance Rate",
-            f"{class_analysis[class_.id]['attendance_rate']:.2f}%"
-        ],
+        ["Total Students", str(class_analysis[class_.id]["total_students"])],
+        ["Average Attendance", f"{class_analysis[class_.id]['avg_attendance']:.2f}"],
+        ["Attendance Rate", f"{class_analysis[class_.id]['attendance_rate']:.2f}%"],
     ]
     t = Table(general_stats)
-    t.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 14),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-            ("TEXTCOLOR", (0, 1), (-1, -1), colors.black),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-            ("FONTSIZE", (0, 1), (-1, -1), 12),
-            ("TOPPADDING", (0, 1), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
-            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ]))
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 14),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 12),
+        ('TOPPADDING', (0, 1), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
     elements.append(t)
 
     # Add top performers
     elements.append(Paragraph("Top Performers", styles["Heading2"]))
     top_performers = [["Student", "Attendances"]]
-    for student_id, count in class_analysis[class_.id]["top_students"]:
-        student = Student.query.get(student_id)
-        if student:
-            top_performers.append(
-                [f"{student.first_name} {student.last_name}",
-                 str(count)])
+    for student, count in class_analysis[class_.id]["top_students"][:5]:
+        top_performers.append([f"{student.first_name} {student.last_name}", str(count)])
     t = Table(top_performers)
-    t.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 14),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-            ("TEXTCOLOR", (0, 1), (-1, -1), colors.black),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-            ("FONTSIZE", (0, 1), (-1, -1), 12),
-            ("TOPPADDING", (0, 1), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
-            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ]))
+    t.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, 0), 14),
+        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (0, 1), (-1, -1), 12),
+        ('TOPPADDING', (0, 1), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('GRID', (0, 0), (-1, -1), 1, colors.black)
+    ]))
     elements.append(t)
 
     # Add attendance trend chart
-    elements.append(
-        Paragraph("Attendance Trend (Last 7 Days)", styles["Heading2"]))
+    elements.append(Paragraph("Attendance Trend (Last 30 Days)", styles["Heading2"]))
 
     # Create the chart using matplotlib
     plt.figure(figsize=(10, 5))
-    plt.plot(range(7), class_analysis[class_.id]["recent_trend"], marker="o")
-    plt.title("Attendance Trend (Last 7 Days)")
-    plt.xlabel("Days Ago")
+    plt.plot(class_analysis[class_.id]["dates"][-30:], class_analysis[class_.id]["attendance_counts"][-30:], marker="o")
+    plt.title("Attendance Trend (Last 30 Days)")
+    plt.xlabel("Date")
     plt.ylabel("Attendance Count")
-    plt.xticks(range(7), ["7", "6", "5", "4", "3", "2", "1"])
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
     plt.grid(True)
 
     # Save the chart to a BytesIO object
@@ -420,38 +428,6 @@ def download_pdf(class_id):
     chart_image.drawHeight = 300
     chart_image.drawWidth = 500
     elements.append(chart_image)
-
-    # Add attendance details
-    elements.append(Paragraph("Attendance Details", styles["Heading2"]))
-    attendance_data = [["Student", "Present", "Late", "Absent"]]
-    for student_id, counts in class_attendance[class_.id].items():
-        student = Student.query.get(student_id)
-        if student:
-            attendance_data.append([
-                f"{student.first_name} {student.last_name}",
-                str(counts["present"]),
-                str(counts["late"]),
-                str(counts["absent"]),
-            ])
-    t = Table(attendance_data)
-    t.setStyle(
-        TableStyle([
-            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
-            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
-            ("FONTSIZE", (0, 0), (-1, 0), 14),
-            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
-            ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
-            ("TEXTCOLOR", (0, 1), (-1, -1), colors.black),
-            ("ALIGN", (0, 0), (-1, -1), "CENTER"),
-            ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
-            ("FONTSIZE", (0, 1), (-1, -1), 12),
-            ("TOPPADDING", (0, 1), (-1, -1), 6),
-            ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
-            ("GRID", (0, 0), (-1, -1), 1, colors.black),
-        ]))
-    elements.append(t)
 
     # Build the PDF
     doc.build(elements)
@@ -467,15 +443,17 @@ def download_pdf(class_id):
     )
 
 
-def get_class_attendance_data(class_id):
-    return (db.session.query(
-        Student.first_name,
-        Student.last_name,
-        Attendance.status,
-        func.count(Attendance.id).label("attendance_count"),
-    ).join(Attendance, Attendance.student_id == Student.id).filter(
-        Attendance.class_id == class_id).group_by(Student.id,
-                                                  Attendance.status).all())
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -497,23 +475,229 @@ def download_csv(class_id):
         student_data[student_name][status] += count
 
     for student_name, counts in student_data.items():
-        cw.writerow([
-            student_name, counts["present"], counts["late"], counts["absent"]
-        ])
+        cw.writerow([student_name, counts["present"], counts["late"], counts["absent"]])
 
     # Create the response and set headers
     output = make_response(si.getvalue())
     output.headers["Content-Disposition"] = (
-        f"attachment; filename={class_.name}_attendance.csv")
+        f"attachment; filename={class_.name}_attendance.csv"
+    )
     output.headers["Content-type"] = "text/csv"
     return output
 
-@views.route('/functionalities/<int:class_id>')
+
+@views.route("/functionalities/<int:class_id>")
 @login_required
 def functionalities(class_id):
     class_ = Class.query.get_or_404(class_id)
     if not current_user.is_admin and class_ not in current_user.classes:
-        flash('You do not have permission to access this class.', 'danger')
-        print('You do not have permission to access this class.', 'danger')
-        return redirect(url_for('views.dashboard'))
-    return render_template('Attendance.html', class_=class_)
+        flash("You do not have permission to access this class.", "danger")
+        print("You do not have permission to access this class.", "danger")
+        return redirect(url_for("views.dashboard"))
+    return render_template("Attendance.html", class_=class_)
+
+
+# Helper functions
+# def analyze_class_data(classes):
+#     class_analysis = {}
+#     for class_ in classes:
+#         print(class_)
+#         analysis = {
+#             "total_students": 0,
+#             "avg_attendance": 0,
+#             "attendance_rate": 0,
+#             "top_students": [],
+#             "bottom_students": [],
+#             "dates": [],
+#             "attendance_counts": [],
+#         }
+
+#         # Get all students in this class
+#         students = Student.query.filter(
+#             Student.classes.any(id=class_.id)).all()
+#         print("Class students", students)
+#         print("length of students", len(students))
+#         analysis["total_students"] = len(students)
+
+#         # Get attendance data for the last 30 days
+#         end_date = datetime.now().date()
+#         start_date = end_date - timedelta(days=20)
+#         print(start_date, end_date)
+#         attendances = Attendance.query.filter(
+#             Attendance.class_id == class_.id, Attendance.timestamp
+#             >= start_date, Attendance.timestamp
+#             <= end_date).order_by(Attendance.timestamp).all()
+#         print(f"Class ID: {class_.id}, Attendances: {attendances}")
+
+#         # Process attendance data
+#         date_attendance = defaultdict(int)
+#         student_attendance = defaultdict(int)
+#         for attendance in attendances:
+#             date_attendance[attendance.timestamp.date()] += 1
+#             student_attendance[attendance.student_id] += 1
+
+#         # Calculate average attendance and attendance rate
+#         total_attendance = sum(date_attendance.values())
+#         num_days = (end_date - start_date).days + 1
+#         if num_days > 0:
+#             analysis["avg_attendance"] = total_attendance / num_days
+#         if analysis["total_students"] * num_days > 0:
+#             analysis["attendance_rate"] = (
+#                 total_attendance /
+#                 (analysis["total_students"] * num_days)) * 100
+
+#         # Prepare data for the attendance trend chart
+#         for date in (start_date + timedelta(n) for n in range(30)):
+#             analysis["dates"].append(date.strftime('%Y-%m-%d'))
+#             analysis["attendance_counts"].append(date_attendance[date])
+
+#         # Get top and bottom students
+#         student_attendance_list = [
+#             (Student.query.get(student_id), count)
+#             for student_id, count in student_attendance.items()
+#         ]
+#         analysis["top_students"] = sorted(student_attendance_list,
+#                                           key=lambda x: x[1],
+#                                           reverse=True)
+#         analysis["bottom_students"] = sorted(student_attendance_list,
+#                                              key=lambda x: x[1])
+
+#         class_analysis[class_.id] = analysis
+#         # print(class_analysis)
+#     return class_analysis
+
+from sqlalchemy.orm import aliased
+
+
+def analyze_class_data(classes):
+    class_analysis = {}
+    print("***************************")
+    print("Data Type of classes: ", type(classes))
+    print()
+    print("printing the list classes :", classes)
+    print()
+    print("***************************")
+    print()
+    print("Printing Classes: ", classes)
+    print()
+    for class_ in classes:
+        # print(f"Processing class: {class_.id}")
+        print("printing thet type of class_ :", type(class_))
+        print()
+        print("class_ :", class_)
+        print()
+        print()
+        print()
+        print("++++++++++++++++++++++++++++++++++")
+        print("class id ===== ", class_.id)
+        print("+++++++++++++++++++++++++++++++++")
+        print()
+        print()
+        print()
+        # print("class id ===== ", class_.id)
+        print()
+        print()
+        print()
+        analysis = {
+            "total_students": 0,
+            "avg_attendance": 0,
+            "attendance_rate": 0,
+            "top_students": [],
+            "bottom_students": [],
+            "dates": [],
+            "attendance_counts": [],
+        }
+
+        # Get all students in this class
+        students = Student.query.filter(Student.classes.any(id=class_.id)).all()
+        print(f"Class students: {students}")
+        print(f"Length of students: {len(students)}")
+        analysis["total_students"] = len(students)
+
+        # Get attendance data for the last 30 days
+        end_date = datetime.now().date() + +timedelta(days=2)
+        start_date = end_date - timedelta(days=28)
+        print(f"Start date: {start_date}, End date: {end_date}")
+
+        attendances = (
+            Attendance.query.filter(
+                Attendance.class_id == class_.id,
+                Attendance.timestamp >= start_date,
+                Attendance.timestamp <= end_date,
+            )
+            .order_by(Attendance.timestamp)
+            .all()
+        )
+        print(Attendance.class_id)
+        print(f"Class ID: {class_.id}, Attendances: {attendances}")
+
+        # Process attendance data
+        date_attendance = defaultdict(int)
+        student_attendance = defaultdict(int)
+        for attendance in attendances:
+            date_attendance[attendance.timestamp.date()] += 1
+            student_attendance[attendance.student_id] += 1
+
+        # Calculate average attendance and attendance rate
+        total_attendance = sum(date_attendance.values())
+        num_days = (end_date - start_date).days + 1
+        if num_days > 0:
+            analysis["avg_attendance"] = total_attendance / num_days
+        if analysis["total_students"] * num_days > 0:
+            analysis["attendance_rate"] = (
+                total_attendance / (analysis["total_students"] * num_days)
+            ) * 100
+
+        # Prepare data for the attendance trend chart
+        for date in (start_date + timedelta(n) for n in range(30)):
+            analysis["dates"].append(date.strftime("%Y-%m-%d"))
+            analysis["attendance_counts"].append(date_attendance[date])
+
+        # Get top and bottom students
+        student_attendance_list = [
+            (Student.query.get(student_id), count)
+            for student_id, count in student_attendance.items()
+        ]
+        analysis["top_students"] = sorted(
+            student_attendance_list, key=lambda x: x[1], reverse=True
+        )
+        analysis["bottom_students"] = sorted(
+            student_attendance_list, key=lambda x: x[1]
+        )
+
+        class_analysis[class_.id] = analysis
+        # print(class_analysis)
+    return class_analysis
+
+
+def get_class_data(teacher_classes):
+    return (
+        db.session.query(
+            Class,
+            Student,
+            Attendance.status,
+            func.count(Attendance.id).label("attendance_count"),
+            func.max(Attendance.timestamp).label("last_attendance"),
+        )
+        .join(Attendance, Attendance.class_id == Class.id)
+        .join(Student, Student.id == Attendance.student_id)
+        .filter(Class.id.in_([c.id for c in teacher_classes]))
+        .group_by(Class.id, Student.id, Attendance.status)
+        .all()
+    )
+
+
+def get_class_attendance_data(class_id):
+    return (
+        db.session.query(
+            Student.first_name,
+            Student.last_name,
+            Attendance.status,
+            func.count(Attendance.id).label("attendance_count"),
+        )
+        .join(Attendance, Attendance.student_id == Student.id)
+        .filter(Attendance.class_id == class_id)
+        .group_by(Student.id, Attendance.status)
+        .all()
+    )
+    

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,79 +9,83 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"></script>
     <style>
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             width: 100%;
             height: 100%;
             overflow: hidden;
         }
+
         #fullScreenChart {
             width: 100%;
             height: 100%;
         }
     </style>
 </head>
+
 <body>
     <canvas id="fullScreenChart"></canvas>
 
     <script>
-    var ctx = document.getElementById('fullScreenChart').getContext('2d');
-    var attendanceData = {
-        labels: {{ analysis['dates']|tojson }},
+        var ctx = document.getElementById('fullScreenChart').getContext('2d');
+        var attendanceData = {
+            labels: {{ analysis['dates']| tojson }},
         datasets: [{
             label: 'Attendance',
-            data: {{ analysis['attendance_counts']|tojson }},
+            data: {{ analysis['attendance_counts']| tojson }},
             borderColor: 'rgb(75, 192, 192)',
             tension: 0.1,
             fill: false
         }]
     };
-    var chart = new Chart(ctx, {
-        type: 'line',
-        data: attendanceData,
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    title: {
-                        display: true,
-                        text: 'Number of Students'
+        var chart = new Chart(ctx, {
+            type: 'line',
+            data: attendanceData,
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Students'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Date'
+                        }
                     }
                 },
-                x: {
+                plugins: {
                     title: {
                         display: true,
-                        text: 'Date'
-                    }
-                }
-            },
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'Attendance Trend for {{ class_.name }}'
-                },
-                zoom: {
-                    pan: {
-                        enabled: true,
-                        mode: 'x',
-                        threshold: 10,
+                        text: 'Attendance Trend for {{ class_.name }}'
                     },
                     zoom: {
-                        wheel: {
+                        pan: {
                             enabled: true,
+                            mode: 'x',
+                            threshold: 10,
                         },
-                        pinch: {
-                            enabled: true
-                        },
-                        mode: 'x',
+                        zoom: {
+                            wheel: {
+                                enabled: true,
+                            },
+                            pinch: {
+                                enabled: true
+                            },
+                            mode: 'x',
+                        }
                     }
                 }
             }
-        }
-    });
+        });
     </script>
 </body>
+
 </html>

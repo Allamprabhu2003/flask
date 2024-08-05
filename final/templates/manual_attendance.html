@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Attendance - {{ class_.name }}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/style.css') }}" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .container {
+            max-width: 800px;
+            margin-top: 2rem;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .btn-group-toggle .btn {
+            cursor: pointer;
+        }
+        .btn-group-toggle .btn.active {
+            background-color: #007bff;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-center mb-4">Manual Attendance</h1>
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h2 class="mb-0">{{ class_.name }}</h2>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('manual_attendance.manual_attendance_class', class_id=class_.id) }}" onsubmit="return confirmSubmit()">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student Name</th>
+                                    <th>Attendance</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for student in students %}
+                                    <tr>
+                                        <td>{{ student.first_name }} {{ student.last_name }}</td>
+                                        <td>
+                                            <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                                                <label class="btn btn-outline-success">
+                                                    <input type="radio" name="status_{{ student.id }}" value="present"> Present
+                                                </label>
+                                                <label class="btn btn-outline-danger">
+                                                    <input type="radio" name="status_{{ student.id }}" value="absent"> Absent
+                                                </label>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="text-center mt-4">
+                        <button type="button" class="btn btn-secondary" onclick="markAllPresent()">Mark All Present</button>
+                        <button type="button" class="btn btn-secondary" onclick="markAllAbsent()">Mark All Absent</button>
+                        <button type="submit" class="btn btn-primary btn-lg mt-3">Submit Attendance</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function confirmSubmit() {
+            return confirm("Are you sure you want to submit the attendance?");
+        }
+
+        function markAllPresent() {
+            const inputs = document.querySelectorAll('input[type="radio"][value="present"]');
+            inputs.forEach(input => {
+                input.checked = true;
+                input.closest('.btn-group-toggle').querySelectorAll('.btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                input.closest('.btn').classList.add('active');
+            });
+        }
+
+        function markAllAbsent() {
+            const inputs = document.querySelectorAll('input[type="radio"][value="absent"]');
+            inputs.forEach(input => {
+                input.checked = true;
+                input.closest('.btn-group-toggle').querySelectorAll('.btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                input.closest('.btn').classList.add('active');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const radioButtons = document.querySelectorAll('.btn-group-toggle input[type="radio"]');
+            radioButtons.forEach(function(radio) {
+                radio.addEventListener('change', function() {
+                    this.closest('.btn-group-toggle').querySelectorAll('.btn').forEach(function(btn) {
+                        btn.classList.remove('active');
+                    });
+                    this.closest('.btn').classList.add('active');
+                });
+            });
+        });
+    </script>
+</body>
+</html>

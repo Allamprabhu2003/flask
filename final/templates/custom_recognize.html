@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Model Face Recognition</title>
+</head>
+
+<body>
+    <h2>Custom Model Face Recognition</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="model" accept=".py">
+        <button type="submit">Upload Custom Model</button>
+    </form>
+    <form id="recognizeForm" enctype="multipart/form-data">
+        <input type="file" name="image" accept="image/*" capture="camera">
+        <input type="hidden" name="model_path" id="modelPath">
+        <button type="submit">Recognize Faces</button>
+    </form>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            fetch('/upload_model', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    document.getElementById('modelPath').value = data.model_path;
+                    alert('Model uploaded successfully');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during model upload: ' + error.message);
+                });
+        });
+
+        document.getElementById('recognizeForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            var formData = new FormData(this);
+
+            fetch('/recognize', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        throw new Error(data.error);
+                    }
+                    document.getElementById('result').textContent = 'Recognized faces: ' + data.recognized_faces.join(', ');
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').textContent = 'An error occurred during face recognition: ' + error.message;
+                });
+        });
+    </script>
+</body>
+
+</html>

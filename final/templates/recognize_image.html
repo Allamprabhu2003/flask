@@ -45,6 +45,44 @@
             display: none;
             margin-top: 10px;
         }
+        #recognition-results {
+            display: none;
+            margin-top: 20px;
+        }
+        .face-item {
+            background-color: #e9ecef;
+            border-radius: 5px;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #flash-messages {
+            margin-top: 20px;
+        }
+        .flash-message {
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        .flash-success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .flash-info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        .flash-warning {
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+            color: #856404;
+        }
+        .flash-error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
     </style>
 </head>
 <body>
@@ -54,6 +92,8 @@
                 <h2><i class="fas fa-camera"></i> Face Recognition</h2>
             </div>
             <div class="card-body">
+                <div id="flash-messages"></div>
+
                 <form id="recognize-form" method="POST" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="image-input" class="form-label">Select an image:</label>
@@ -74,6 +114,10 @@
                     </div>
                     <img id="recognized-image" src="#" alt="Recognized Image" class="img-fluid mt-3">
                     <div id="error-message" class="alert alert-danger mt-3" role="alert"></div>
+                    <div id="recognition-results" class="mt-4">
+                        <h3>Recognition Results</h3>
+                        <div id="faces-list"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -102,21 +146,47 @@
                 $('.spinner-border').show();
                 $('#recognized-image').hide();
                 $('#error-message').hide();
-
+                $('#recognition-results').hide();
+                $('#flash-messages').empty();
                 $.ajax({
                     type: 'POST',
                     url: '{{ url_for("face_recognition.recognize_image", class_id=class_id) }}',
                     data: formData,
                     processData: false,
                     contentType: false,
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
                     success: function (data, textStatus, jqXHR) {
-                        if (jqXHR.getResponseHeader('content-type').indexOf('application/json') !== -1) {
-                            // This is an error response
-                            $('#error-message').text(data.error).show();
-                        } else {
+                        const contentType = jqXHR.getResponseHeader('content-type');
+                        if (contentType.indexOf('application/json') !== -1) {
+                            // This is a JSON response
+                            const reader = new FileReader();
+                            reader.onload = function() {
+                                const jsonResponse = JSON.parse(this.result);
+                                if (jsonResponse.error) {
+                                    $('#error-message').text(jsonResponse.error).show();
+                                } else {
+                                    displayRecognitionResults(jsonResponse);
+                                }
+                                if (jsonResponse.flash_messages) {
+                                    displayFlashMessages(jsonResponse.flash_messages);
+                                }
+                            };
+                            reader.readAsText(data);
+                        } else if (contentType.indexOf('image') !== -1) {
                             // This is an image response
-                            var imageUrl = URL.createObjectURL(new Blob([data], { type: 'image/jpeg' }));
+                            const imageUrl = URL.createObjectURL(data);
                             $('#recognized-image').attr('src', imageUrl).show();
+                            
+                            // Get flash messages from custom header
+                            const flashMessagesHeader = jqXHR.getResponseHeader('X-Flash-Messages');
+                            if (flashMessagesHeader) {
+                                const flashMessages = JSON.parse(flashMessagesHeader);
+                                displayFlashMessages(flashMessages);
+                            }
+                        } else {
+                            $('#error-message').text('Unexpected response from server').show();
                         }
                         $('.spinner-border').hide();
                     },
@@ -131,6 +201,46 @@
                     }
                 });
             });
+
+            function displayRecognitionResults(data) {
+                $('#faces-list').empty();
+                if (data.recognized_faces && data.recognized_faces.length > 0) {
+                    data.recognized_faces.forEach(function(face) {
+                        $('#faces-list').append(
+                            `<div class="face-item">
+                                <i class="fas fa-user"></i> ${face}
+                            </div>`
+                        );
+                    });
+                } else {
+                    $('#faces-list').append('<p>No faces recognized</p>');
+                }
+                $('#recognition-results').show();
+            }
+
+            function displayFlashMessages(messages) {
+                const flashContainer = $('#flash-messages');
+                flashContainer.empty();
+                messages.forEach(function(message) {
+                    const messageElement = $('<div>').addClass('flash-message');
+                    messageElement.text(message.message);
+                    switch(message.category) {
+                        case 'success':
+                            messageElement.addClass('flash-success');
+                            break;
+                        case 'info':
+                            messageElement.addClass('flash-info');
+                            break;
+                        case 'warning':
+                            messageElement.addClass('flash-warning');
+                            break;
+                        case 'error':
+                            messageElement.addClass('flash-error');
+                            break;
+                    }
+                    flashContainer.append(messageElement);
+                });
+            }
         });
     </script>
 </body>

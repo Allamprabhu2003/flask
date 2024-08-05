@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -121,16 +120,20 @@
                 <h5 class="card-title">{{ class_.name }}</h5>
                 <p class="card-text">Manage functionalities for this class.</p>
                 <div class="d-grid gap-2">
-                    <a href="{{ url_for('face_recognition.recognize', class_id=class_.id) }}" class="btn btn-outline-success">
+                    <a href="{{ url_for('face_recognition.recognize', class_id=class_.id) }}"
+                        class="btn btn-outline-success">
                         <i class="fas fa-video"></i> Start Video Feed
                     </a>
-                    <a href="{{ url_for('face_recognition.recognize_image', class_id=class_.id) }}" class="btn btn-outline-info">
+                    <a href="{{ url_for('face_recognition.recognize_image', class_id=class_.id) }}"
+                        class="btn btn-outline-info">
                         <i class="fas fa-camera"></i> Recognize Image
                     </a>
-                    <a href="{{ url_for('face_recognition.change_video_source', class_id=class_.id) }}" class="btn btn-outline-primary">
+                    <a href="{{ url_for('face_recognition.change_video_source', class_id=class_.id) }}"
+                        class="btn btn-outline-primary">
                         <i class="fas fa-exchange-alt"></i> Change Video Source
                     </a>
-                    <a href="{{ url_for('attendance.class_attendance', class_id=class_.id) }}" class="btn btn-outline-secondary">
+                    <a href="{{ url_for('attendance.class_attendance', class_id=class_.id) }}"
+                        class="btn btn-outline-secondary">
                         <i class="fas fa-list-alt"></i> View Attendance
                     </a>
                 </div>
