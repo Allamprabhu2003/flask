@@ -255,7 +255,18 @@
     .analysis-card {
         animation: slideIn 0.5s ease-out;
     }
-        
+
+    .profile-pic,
+        .profile-icon {
+            width: 50px;
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .profile-icon {
+            font-size: 50px;
+        }
+
     </style>
 </head>
 
@@ -265,17 +276,25 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">
-            <span class="alert-icon">&#9888;</span>
-            <span>{{ message }}</span>
+        <div class="alert alert-{{ category }} animate-in">
+            <span class="alert-icon">
+                {% if category == 'success' %}
+                <i class="fas fa-check-circle"></i>
+                {% elif category == 'info' %}
+                <i class="fas fa-info-circle"></i>
+                {% elif category == 'warning' %}
+                <i class="fas fa-exclamation-triangle"></i>
+                {% elif category == 'error' %}
+                <i class="fas fa-times-circle"></i>
+                {% endif %}
+            </span>
+            <span class="message">{{ message }}</span>
             <button type="button" class="close-btn">&times;</button>
         </div>
         {% endfor %}
         {% endif %}
         {% endwith %}
     </div>
-
-
 
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container-fluid">
@@ -284,9 +303,10 @@
             </span>
             <a class="navbar-brand ms-3" href="#">Attendance System</a>
             <div class="profile-info ms-auto">
-                <img src="{{ current_user.profile_picture_url|default('https://via.placeholder.com/32') }}"
-                    alt="Profile" class="profile-pic">
-                <span>{{ current_user.first_name }} {{ current_user.last_name }}</span>
+                <div class="profile-info ms-auto">
+                    <i class="fas fa-user-circle profile-icon"></i>
+                    <span>{{ current_user.first_name }} {{ current_user.last_name }}</span>
+                </div>
             </div>
         </div>
     </nav>
@@ -354,7 +374,7 @@
                                 </a>
                                 <a href="{{ url_for('manual_attendance.manual_attendance_class', class_id=class_.id) }}"
                                 class="btn btn-sm btn-secondary">
-                                <i class="fas fa-edit"></i> Attend
+                                <i class="fas fa-edit"></i> Manual Attendance
                             </a>
                                 {% endif %}
                                 {% if current_user.can_delete_classes %}
@@ -364,7 +384,6 @@
                                     <i class="fas fa-trash"></i> Delete Class
                                 </a>
 
-
                                 {% endif %}
                             </div>
                         </div>
@@ -372,7 +391,6 @@
                     {% endfor %}
                 </div>
             </div>
-
 
             <script type="text/javascript">
                 function deleteClass(classId) {
@@ -407,122 +425,10 @@
                 }
             </script>
 
-
             <div id="analysisSection" style="display: none;">
-                <!-- <div id="content">
-                    <div class="container mt-5">
-                        <h2 class="mb-4"> Attendance Analytics</h2>
-                
-                        {% for class_ in classes %}
-                        <div class="card mt-4 analysis-card">
-                            <div class="card-header bg-primary text-white">
-                                <h3 class="mb-0">{{ class_.name }} - Attendance Insights</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-8 position-relative graph-container">
-                                        <a href="{{ url_for('views.full_screen_plot', class_id=class_.id) }}"
-                                            class="btn btn-outline-primary btn-sm full-screen-btn" target="_blank">
-                                            <i class="fas fa-expand"></i> Full Screen
-                                        </a>
-                                        <canvas id="attendanceChart{{ class_.id }}" class="attendance-chart"></canvas>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <h4 class="text-primary mb-3">Class Statistics</h4>
-                                        <ul class="list-group stat-list">
-                                            <li class="list-group-item d-flex justify-content-between align-items-center stat-item">
-                                                <span class="stat-label"><i class="fas fa-users"></i> Total Students</span>
-                                                <span class="badge bg-primary rounded-pill stat-value">
-                                                    {{ class_analysis[class_.id]['total_students'] }}
-                                                </span>
-                                            </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center stat-item">
-                                                <span class="stat-label"><i class="fas fa-chart-line"></i> Average Attendance</span>
-                                                <span class="badge bg-success rounded-pill stat-value">
-                                                    {{ class_analysis[class_.id]['avg_attendance']|round(2) }}
-                                                </span>
-                                            </li>
-                                            <li class="list-group-item d-flex justify-content-between align-items-center stat-item">
-                                                <span class="stat-label"><i class="fas fa-percentage"></i> Attendance Rate</span>
-                                                <span class="badge bg-info rounded-pill stat-value">
-                                                    {{ class_analysis[class_.id]['attendance_rate']|round(2) }}%
-                                                </span>
-                                            </li>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-
-                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                <script>
-                    {% for class_ in classes %}
-                    var ctx{{ class_.id }} = document.getElementById('attendanceChart{{ class_.id }}').getContext('2d');
-                    var attendanceData{{ class_.id }} = {
-                        labels: {{ class_analysis[class_.id]['dates'] | tojson }},
-                        datasets: [{
-                            label: 'Attendance',
-                            data: {{ class_analysis[class_.id]['attendance_counts'] | tojson }},
-                            borderColor: 'rgb(75, 192, 192)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderWidth: 2,
-                            pointBackgroundColor: 'rgb(75, 192, 192)',
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    };
-                    var chart{{ class_.id }} = new Chart(ctx{{ class_.id }}, {
-                        type: 'line',
-                        data: attendanceData{{ class_.id }},
-                        options: {
-                            responsive: true,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Students'
-                                    }
-                                },
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Date'
-                                    }
-                                }
-                            },
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Attendance Trend',
-                                    font: {
-                                        size: 18
-                                    }
-                                },
-                                legend: {
-                                    display: false
-                                }
-                            },
-                            animation: {
-                                duration: 1500,
-                                easing: 'easeInOutQuart'
-                            }
-                        }
-                    });
-                    {% endfor %}
-                </script> -->
-
-
-
-
                 <div class="container mt-5">
                     <h2 class="mb-4">Class Analysis Dashboard</h2>
-                    
+
                     {% for class_ in classes %}
                     <div class="card analysis-card mb-4">
                         <div class="card-header bg-primary text-white">
@@ -535,27 +441,31 @@
                                         <a href="{{ url_for('views.full_screen_plot', class_id=class_.id) }}" class="btn btn-primary btn-sm full-screen-btn" target="_blank">
                                             <i class="fas fa-expand"></i> Full Screen
                                         </a>
-                                        <canvas id="attendanceChart{{ class_.id }}"></canvas>
+                                        <canvas id="attendanceChart{{ class_.id }}">
+
+                                        </canvas>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <h4 class="text-primary mb-3">Class Statistics</h4>
                                     <ul class="list-group">
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Total Students
+
+                                            <span class="stat-label"><i class="fas fa-users"></i> Total
+                                                Students</span>
                                             <span class="badge bg-primary rounded-pill">
                                                 {{ class_analysis[class_.id]['total_students'] }}
                                             </span>
                                         </li>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Average Attendance
-                                            <span class="badge bg-success rounded-pill">
+                                            <span class="stat-label"><i class="fas fa-chart-line"></i> Average
+                                                Attendance</span>                                            <span class="badge bg-success rounded-pill">
                                                 {{ class_analysis[class_.id]['avg_attendance']|round(2) }}
                                             </span>
                                         </li>
                                         <li class="list-group-item d-flex justify-content-between align-items-center">
-                                            Attendance Rate
-                                            <span class="badge bg-info rounded-pill">
+                                            <span class="stat-label"><i class="fas fa-percentage"></i> Attendance
+                                                Rate</span>                                            <span class="badge bg-info rounded-pill">
                                                 {{ class_analysis[class_.id]['attendance_rate']|round(2) }}%
                                             </span>
                                         </li>
@@ -591,79 +501,7 @@
                     {% endfor %}
                 </div>
 
-                
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- 
-                <script>
-                {% for class_ in classes %}
-                (function() {0
-                    var ctx = document.getElementById('attendanceChart{{ class_.id }}').getContext('2d');
-                    var attendanceData = {
-                        labels: {{ class_analysis[class_.id]['dates'] | tojson }},
-                        datasets: [{
-                            label: 'Attendance',
-                            data: {{ class_analysis[class_.id]['attendance_counts'] | tojson }},
-                            borderColor: 'rgb(75, 192, 192)',
-                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
-                            borderWidth: 2,
-                            pointBackgroundColor: 'rgb(75, 192, 192)',
-                            pointRadius: 4,
-                            pointHoverRadius: 6,
-                            fill: true,
-                            tension: 0.4
-                        }]
-                    };
-                    new Chart(ctx, {
-                        type: 'line',
-                        data: attendanceData,
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    title: {
-                                        display: true,
-                                        text: 'Number of Students'
-                                    }
-                                },
-                                x: {
-                                    title: {
-                                        display: true,
-                                        text: 'Date'
-                                    }
-                                }
-                            },
-                            plugins: {
-                                title: {
-                                    display: true,
-                                    text: 'Attendance Trend',
-                                    font: {
-                                        size: 18
-                                    }
-                                },
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    mode: 'index',
-                                    intersect: false,
-                                }
-                            },
-                            interaction: {
-                                mode: 'nearest',
-                                axis: 'x',
-                                intersect: false
-                            },
-                            animation: {
-                                duration: 1000,
-                                easing: 'easeInOutQuart'
-                            }
-                        }
-                    });
-                })();
-                {% endfor %}
-                </script> -->
                 <script>
                     {% for class_ in classes %}
                     var ctx{{ class_.id }} = document.getElementById('attendanceChart{{ class_.id }}').getContext('2d');
@@ -723,8 +561,7 @@
                     });
                     {% endfor %}
                     </script>
-                
-            
+
                 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
             </div>
@@ -742,7 +579,7 @@
                 <div class="modal-body">
                     <form action="{{ url_for('class.add_class') }}" method="post">
                         <div class="mb-3">
-                            <input type="text" class="form-control" name="class_name" placeholder="Class Name" required>
+                            <input type="text" class="form-control" name="class_name" placeholder="Class Name" required minlength="2" maxlength="30">
                         </div>
                         <div class="mb-3">
                             <select class="form-control" id="course_type" name="course_type" required>
@@ -777,6 +614,38 @@
             document.getElementById("classesSection").style.display = "none";
             document.getElementById("analysisSection").style.display = "block";
         }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var closeButtons = document.querySelectorAll('.close-btn');
+            closeButtons.forEach(function (button) {
+                button.addEventListener('click', function () {
+                    var alert = button.closest('.alert');
+                    alert.remove();
+                });
+            });
+
+            const alerts = document.querySelectorAll('.alert');
+
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.add('animate-in');
+                }, 100);
+
+                const closeBtn = alert.querySelector('.close-btn');
+                closeBtn.addEventListener('click', () => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateX(50px)';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 300);
+                });
+
+                // Auto-close after 5 seconds
+                setTimeout(() => {
+                    closeBtn.click();
+                }, 5000);
+            });
+        });
 
     </script>
 </body>

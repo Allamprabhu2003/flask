@@ -2,15 +2,51 @@ import csv
 from collections import defaultdict
 from datetime import datetime, timedelta
 from io import BytesIO
+import csv
+from collections import defaultdict
+from datetime import datetime, timedelta
+from io import BytesIO, StringIO
+
+import matplotlib.pyplot as plt
+from flask import (
+    Blueprint,
+    flash,
+    make_response,
+    redirect,
+    render_template,
+    send_file,
+    url_for,
+)
 
 import cv2
-from flask import (Blueprint, flash, make_response, redirect, render_template,
-                   url_for)
+from flask import Blueprint, flash, make_response, redirect, render_template, url_for
 from flask_login import current_user, login_required
 from sqlalchemy import func  # Import func from SQLAlchemy
 
 from .extention import db
 from .models import Attendance, Class, Student
+from collections import defaultdict
+from datetime import datetime, timedelta
+
+from flask import jsonify, render_template
+from flask_login import current_user, login_required
+from sqlalchemy import func
+
+from .extention import db
+from .class_views import get_course_types_from_db
+from flask_login import current_user, login_required
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import landscape, letter
+from reportlab.lib.styles import getSampleStyleSheet
+from reportlab.platypus import Image, Paragraph, SimpleDocTemplate, Table, TableStyle
+from sqlalchemy import func  # Import func from SQLAlchemy
+
+from .extention import db
+from .models import Attendance, Class, Student
+from .student_views import get_course_types_from_db
+
+
+
 
 cv2.ocl.setUseOpenCL(True)
 views = Blueprint("views", __name__)
@@ -21,130 +57,13 @@ def index():
     return render_template("home.html")
 
 
-# def analyze_class_data(class_data):
-#     class_analysis = defaultdict(
-#         lambda: {
-#             "total_students": 0,
-#             "total_classes": 0,
-#             "avg_attendance": 0,
-#             "top_students": [],
-#             "bottom_students": [],
-#             "recent_trend": [0] * 7,
-#             "students": [],
-#             "attendance_rate": 0,
-#         })
-
-#     class_attendance = defaultdict(lambda: defaultdict(lambda: {
-#         "present": 0,
-#         "late": 0,
-#         "absent": 0
-#     }))
-
-#     now = datetime.now()
-#     week_ago = now - timedelta(days=7)
-
-#     for class_, student, status, attendance_count, last_attendance in class_data:
-#         analysis = class_analysis[class_.id]
-#         class_attendance[class_.id][student.id][status] += attendance_count
-
-#         if student not in analysis["students"]:
-#             analysis["students"].append(student)
-#             analysis["total_students"] += 1
-
-#         analysis["total_classes"] = max(
-#             analysis["total_classes"],
-#             sum(class_attendance[class_.id][student.id].values()),
-#         )
-
-#         if last_attendance and last_attendance >= week_ago:
-#             day_index = (now.date() - last_attendance.date()).days
-#             if 0 <= day_index < 7:
-#                 analysis["recent_trend"][6 - day_index] += 1
-
-#     for class_id, analysis in class_analysis.items():
-#         student_counts = [
-#             (student, sum(counts.values()))
-#             for student, counts in class_attendance[class_id].items()
-#         ]
-#         if analysis["total_students"] > 0:
-#             analysis["avg_attendance"] = (sum(count
-#                                               for _, count in student_counts) /
-#                                           analysis["total_students"])
-
-#         analysis["top_students"] = sorted(student_counts,
-#                                           key=lambda x: x[1],
-#                                           reverse=True)[:5]
-#         analysis["bottom_students"] = sorted(student_counts,
-#                                              key=lambda x: x[1])[:3]
-
-#         if analysis["total_students"] > 0 and analysis["total_classes"] > 0:
-#             analysis["attendance_rate"] = (
-#                 sum(count for _, count in student_counts) /
-#                 (analysis["total_students"] * analysis["total_classes"])) * 100
-
-#     return class_analysis, class_attendance
-
-
-# @views.route("/dashboard")
-# @login_required
-# def dashboard():
-#     students = Student.query.all()
-
-#     if current_user.is_admin:
-#         return redirect(url_for("admin.index"))
-
-#     teacher_classes = Class.query.filter(
-#         Class.teachers.any(id=current_user.id)).all()
-#     class_data = get_class_data(teacher_classes)
-#     class_analysis, class_attendance = analyze_class_data(class_data)
-
-#     course_types = ["BCA", "BCS", "BA"]
-
-#     courses_data = {}
-#     for class_ in teacher_classes:
-#         if class_.course_type not in courses_data:
-#             courses_data[class_.course_type] = {
-#                 "name": class_.course_type,
-#                 "total_students": 0,
-#             }
-#         courses_data[class_.course_type]["total_students"] += (
-#             db.session.query(func.count(Student.id)).filter(
-#                 Student.classes.any(id=class_.id)).scalar())
-
-#     return render_template(
-#         "dashboard.html",
-#         classes=teacher_classes,
-#         class_analysis=class_analysis,
-#         class_attendance=class_attendance,
-#         course_types=course_types,
-#         courses_data=courses_data,
-#         students=students
-#     )
-
-
-
-
-
-
-
-from collections import defaultdict
-from datetime import datetime, timedelta
-
-from flask import jsonify, render_template
-from flask_login import current_user, login_required
-from sqlalchemy import func
-
-from .extention import db
-from .models import Attendance, Class, Student
-
-
 @views.route("/dashboard")
 @login_required
 def dashboard():
     if current_user.is_admin:
         return redirect(url_for("admin.index"))
-    
-    course_types = ["BCA", "BCS", "BA"]
+
+    course_types = get_course_types_from_db()
 
     teacher_classes = Class.query.filter(Class.teachers.any(id=current_user.id)).all()
     class_analysis = analyze_class_data(teacher_classes)
@@ -156,12 +75,16 @@ def dashboard():
         course_types=course_types,
     )
 
+
 @views.route("/full-screen-plot/<int:class_id>")
 @login_required
 def full_screen_plot(class_id):
     class_ = Class.query.get_or_404(class_id)
     class_analysis = analyze_class_data([class_])
-    return render_template("full_screen_plot.html", class_=class_, analysis=class_analysis[class_.id])
+    return render_template(
+        "full_screen_plot.html", class_=class_, analysis=class_analysis[class_.id]
+    )
+
 
 def analyze_class_data(classes):
     class_analysis = {}
@@ -174,7 +97,6 @@ def analyze_class_data(classes):
             "bottom_students": [],
             "dates": [],
             "attendance_counts": [],
-            
         }
 
         # Get all students in this class
@@ -184,11 +106,16 @@ def analyze_class_data(classes):
         # Get attendance data for the last 30 days
         end_date = datetime.now().date()
         start_date = end_date - timedelta(days=129)
-        attendances = Attendance.query.filter(
-            Attendance.class_id == class_.id,
-            Attendance.timestamp >= start_date,
-            Attendance.timestamp <= end_date + timedelta(days=1)  # Include the entire last day
-        ).order_by(Attendance.timestamp).all()
+        attendances = (
+            Attendance.query.filter(
+                Attendance.class_id == class_.id,
+                Attendance.timestamp >= start_date,
+                Attendance.timestamp
+                <= end_date + timedelta(days=1),  # Include the entire last day
+            )
+            .order_by(Attendance.timestamp)
+            .all()
+        )
 
         # Process attendance data
         date_attendance = defaultdict(int)
@@ -209,65 +136,49 @@ def analyze_class_data(classes):
             analysis["avg_attendance"] = 0
 
         if total_possible_attendances > 0:
-            analysis["attendance_rate"] = (total_attendance / total_possible_attendances) * 100
+            analysis["attendance_rate"] = (
+                total_attendance / total_possible_attendances
+            ) * 100
         else:
             analysis["attendance_rate"] = 0
 
         # Prepare data for the attendance trend chart
         for date in (start_date + timedelta(n) for n in range(30)):
-            analysis["dates"].append(date.strftime('%Y-%m-%d'))
+            analysis["dates"].append(date.strftime("%Y-%m-%d"))
             analysis["attendance_counts"].append(date_attendance[date])
 
         # Get top and bottom students
-        student_attendance_list = [(Student.query.get(student_id), count) for student_id, count in student_attendance.items()]
-        analysis["top_students"] = sorted(student_attendance_list, key=lambda x: x[1], reverse=True)[:5]
-        analysis["bottom_students"] = sorted(student_attendance_list, key=lambda x: x[1])[:5]
+        student_attendance_list = [
+            (Student.query.get(student_id), count)
+            for student_id, count in student_attendance.items()
+        ]
+        analysis["top_students"] = sorted(
+            student_attendance_list, key=lambda x: x[1], reverse=True
+        )[:5]
+        analysis["bottom_students"] = sorted(
+            student_attendance_list, key=lambda x: x[1]
+        )[:5]
 
         class_analysis[class_.id] = analysis
 
     return class_analysis
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
 def get_class_data(teacher_classes):
-    return (db.session.query(
-        Class,
-        Student,
-        Attendance.status,
-        func.count(Attendance.id).label("attendance_count"),
-        func.max(Attendance.timestamp).label("last_attendance"),
-    ).join(Attendance, Attendance.class_id == Class.id).join(
-        Student, Student.id == Attendance.student_id).filter(
-            Class.id.in_([c.id for c in teacher_classes
-                          ])).group_by(Class.id, Student.id,
-                                       Attendance.status).all())
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return (
+        db.session.query(
+            Class,
+            Student,
+            Attendance.status,
+            func.count(Attendance.id).label("attendance_count"),
+            func.max(Attendance.timestamp).label("last_attendance"),
+        )
+        .join(Attendance, Attendance.class_id == Class.id)
+        .join(Student, Student.id == Attendance.student_id)
+        .filter(Class.id.in_([c.id for c in teacher_classes]))
+        .group_by(Class.id, Student.id, Attendance.status)
+        .all()
+    )
 
 
 @views.route("/course/<string:course_type>/students")
@@ -311,26 +222,6 @@ def student_list(course_type: str) -> None:
         )
         return redirect(url_for("views.dashboard"))
 
-import csv
-from collections import defaultdict
-from datetime import datetime, timedelta
-from io import BytesIO, StringIO
-
-import matplotlib.pyplot as plt
-from flask import (Blueprint, flash, make_response, redirect, render_template,
-                   send_file, url_for)
-from flask_login import current_user, login_required
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import landscape, letter
-from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import (Image, Paragraph, SimpleDocTemplate, Table,
-                                TableStyle)
-from sqlalchemy import func  # Import func from SQLAlchemy
-
-from .extention import db
-from .models import Attendance, Class, Student
-from .student_views import get_course_types_from_db
-
 
 @views.route("/download_pdf/<int:class_id>")
 @login_required
@@ -363,22 +254,26 @@ def download_pdf(class_id):
         ["Attendance Rate", f"{class_analysis[class_.id]['attendance_rate']:.2f}%"],
     ]
     t = Table(general_stats)
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 14),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 12),
-        ('TOPPADDING', (0, 1), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 14),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                ("TEXTCOLOR", (0, 1), (-1, -1), colors.black),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 1), (-1, -1), 12),
+                ("TOPPADDING", (0, 1), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+            ]
+        )
+    )
     elements.append(t)
 
     # Add top performers
@@ -387,22 +282,26 @@ def download_pdf(class_id):
     for student, count in class_analysis[class_.id]["top_students"][:5]:
         top_performers.append([f"{student.first_name} {student.last_name}", str(count)])
     t = Table(top_performers)
-    t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 14),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 12),
-        ('TOPPADDING', (0, 1), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
-        ('GRID', (0, 0), (-1, -1), 1, colors.black)
-    ]))
+    t.setStyle(
+        TableStyle(
+            [
+                ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+                ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+                ("FONTSIZE", (0, 0), (-1, 0), 14),
+                ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+                ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+                ("TEXTCOLOR", (0, 1), (-1, -1), colors.black),
+                ("ALIGN", (0, 0), (-1, -1), "CENTER"),
+                ("FONTNAME", (0, 1), (-1, -1), "Helvetica"),
+                ("FONTSIZE", (0, 1), (-1, -1), 12),
+                ("TOPPADDING", (0, 1), (-1, -1), 6),
+                ("BOTTOMPADDING", (0, 1), (-1, -1), 6),
+                ("GRID", (0, 0), (-1, -1), 1, colors.black),
+            ]
+        )
+    )
     elements.append(t)
 
     # Add attendance trend chart
@@ -410,11 +309,15 @@ def download_pdf(class_id):
 
     # Create the chart using matplotlib
     plt.figure(figsize=(10, 5))
-    plt.plot(class_analysis[class_.id]["dates"][-30:], class_analysis[class_.id]["attendance_counts"][-30:], marker="o")
+    plt.plot(
+        class_analysis[class_.id]["dates"][-30:],
+        class_analysis[class_.id]["attendance_counts"][-30:],
+        marker="o",
+    )
     plt.title("Attendance Trend (Last 30 Days)")
     plt.xlabel("Date")
     plt.ylabel("Attendance Count")
-    plt.xticks(rotation=45, ha='right')
+    plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     plt.grid(True)
 
@@ -441,21 +344,6 @@ def download_pdf(class_id):
         download_name=f"{class_.name}_analysis.pdf",
         mimetype="application/pdf",
     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 @views.route("/download_csv/<int:class_id>")
@@ -497,107 +385,13 @@ def functionalities(class_id):
     return render_template("Attendance.html", class_=class_)
 
 
-# Helper functions
-# def analyze_class_data(classes):
-#     class_analysis = {}
-#     for class_ in classes:
-#         print(class_)
-#         analysis = {
-#             "total_students": 0,
-#             "avg_attendance": 0,
-#             "attendance_rate": 0,
-#             "top_students": [],
-#             "bottom_students": [],
-#             "dates": [],
-#             "attendance_counts": [],
-#         }
-
-#         # Get all students in this class
-#         students = Student.query.filter(
-#             Student.classes.any(id=class_.id)).all()
-#         print("Class students", students)
-#         print("length of students", len(students))
-#         analysis["total_students"] = len(students)
-
-#         # Get attendance data for the last 30 days
-#         end_date = datetime.now().date()
-#         start_date = end_date - timedelta(days=20)
-#         print(start_date, end_date)
-#         attendances = Attendance.query.filter(
-#             Attendance.class_id == class_.id, Attendance.timestamp
-#             >= start_date, Attendance.timestamp
-#             <= end_date).order_by(Attendance.timestamp).all()
-#         print(f"Class ID: {class_.id}, Attendances: {attendances}")
-
-#         # Process attendance data
-#         date_attendance = defaultdict(int)
-#         student_attendance = defaultdict(int)
-#         for attendance in attendances:
-#             date_attendance[attendance.timestamp.date()] += 1
-#             student_attendance[attendance.student_id] += 1
-
-#         # Calculate average attendance and attendance rate
-#         total_attendance = sum(date_attendance.values())
-#         num_days = (end_date - start_date).days + 1
-#         if num_days > 0:
-#             analysis["avg_attendance"] = total_attendance / num_days
-#         if analysis["total_students"] * num_days > 0:
-#             analysis["attendance_rate"] = (
-#                 total_attendance /
-#                 (analysis["total_students"] * num_days)) * 100
-
-#         # Prepare data for the attendance trend chart
-#         for date in (start_date + timedelta(n) for n in range(30)):
-#             analysis["dates"].append(date.strftime('%Y-%m-%d'))
-#             analysis["attendance_counts"].append(date_attendance[date])
-
-#         # Get top and bottom students
-#         student_attendance_list = [
-#             (Student.query.get(student_id), count)
-#             for student_id, count in student_attendance.items()
-#         ]
-#         analysis["top_students"] = sorted(student_attendance_list,
-#                                           key=lambda x: x[1],
-#                                           reverse=True)
-#         analysis["bottom_students"] = sorted(student_attendance_list,
-#                                              key=lambda x: x[1])
-
-#         class_analysis[class_.id] = analysis
-#         # print(class_analysis)
-#     return class_analysis
-
 from sqlalchemy.orm import aliased
 
 
 def analyze_class_data(classes):
     class_analysis = {}
-    print("***************************")
-    print("Data Type of classes: ", type(classes))
-    print()
-    print("printing the list classes :", classes)
-    print()
-    print("***************************")
-    print()
-    print("Printing Classes: ", classes)
-    print()
+
     for class_ in classes:
-        # print(f"Processing class: {class_.id}")
-        print("printing thet type of class_ :", type(class_))
-        print()
-        print("class_ :", class_)
-        print()
-        print()
-        print()
-        print("++++++++++++++++++++++++++++++++++")
-        print("class id ===== ", class_.id)
-        print("+++++++++++++++++++++++++++++++++")
-        print()
-        print()
-        print()
-        # print("class id ===== ", class_.id)
-        print()
-        print()
-        print()
         analysis = {
             "total_students": 0,
             "avg_attendance": 0,
@@ -700,4 +494,3 @@ def get_class_attendance_data(class_id):
         .group_by(Student.id, Attendance.status)
         .all()
     )
-    

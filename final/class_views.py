@@ -22,10 +22,13 @@ def add_class():
         return redirect(url_for("views.dashboard"))
 
     course_types = get_course_types_from_db()
+    print("Inside Edit class")
+
 
     if request.method == "POST":
         class_name = request.form.get("class_name")
         course_type = request.form.get("course_type")
+        
 
         if not class_name or not course_type:
             flash("Class name and course type are required.", "error")
@@ -57,6 +60,7 @@ def add_class():
 
 @class_views.route("/class/<int:class_id>/edit", methods=["GET", "POST"])
 @login_required
+@csrf.exempt
 def edit_class(class_id):
     """Edit an existing class"""
     if not (current_user.is_admin or current_user.can_edit_classes):

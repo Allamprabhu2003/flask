@@ -37,6 +37,14 @@ form button {
     cursor: pointer;
 }
 
+
+.error-message {
+    color: red;
+    font-size: 0.8em;
+    margin-top: 5px;
+    display: none;
+}
+
 a {
     display: block;
     text-align: center;

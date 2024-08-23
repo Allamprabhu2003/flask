@@ -4,10 +4,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Attendance System</title>
+    <title>Automatic Attendance System Using Computer Vision</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}" type="image/x-icon">
+
     <style>
         :root {
             --primary-color: #6c5ce7;
@@ -101,6 +104,7 @@
 
         .hero-image {
             position: relative;
+            cursor:pointer;
         }
 
         .hero-image img {
@@ -473,7 +477,7 @@
 <body>
     <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <a class="navbar-brand" href="#">SmartAttend</a>
+            <!-- <a class="navbar-brand" href="#">Automatic Attendance System Using Computer Vision</a> -->
             <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
                 aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
@@ -521,7 +525,7 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-lg-6 hero-content">
-                    <h1 class="animate_animated animate_fadeInUp">Smart Attendance System</h1>
+                    <h1 class="animate_animated animate_fadeInUp">Automatic Attendance System Using Computer Vision</h1>
                     <p class="animate_animated animatefadeInUp animate_delay-1s">Revolutionize your attendance
                         tracking with our cutting-edge AI-powered solution.</p>
                     <a href="#features"
@@ -609,14 +613,14 @@
                         <div class="team-card-inner">
                             <div class="team-card-front">
                                 <div class="team-image">
-                                    <img src="{{ url_for('static', filename='dev1.jpg') }}" alt="Developer 1"
+                                    <img src="{{ url_for('static', filename='Ap.png') }}" alt="Developer 1"
                                         class="img-fluid">
                                 </div>
-                                <h3>John Doe</h3>
+                                <h3> Allamprabhu Hiremath</h3>
                                 <p class="team-role">Lead Developer</p>
                             </div>
                             <div class="team-card-back">
-                                <p class="team-bio">John is an experienced full-stack developer with a passion for AI
+                                <p class="team-bio">Allamprabhu is an experienced full-stack developer with a passion for AI
                                     and machine learning.</p>
                                 <div class="team-social">
                                     <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
@@ -632,14 +636,14 @@
                         <div class="team-card-inner">
                             <div class="team-card-front">
                                 <div class="team-image">
-                                    <img src="{{ url_for('static', filename='dev2.jpg') }}" alt="Developer 2"
+                                    <img src="{{ url_for('static', filename='harish.jpg') }}" alt="Developer 2"
                                         class="img-fluid">
                                 </div>
-                                <h3>Jane Smith</h3>
+                                <h3>harish Patil</h3>
                                 <p class="team-role">UI/UX Designer</p>
                             </div>
                             <div class="team-card-back">
-                                <p class="team-bio">Jane is a creative designer with a keen eye for user-centric
+                                <p class="team-bio">Harish is a creative designer with a keen eye for user-centric
                                     interfaces and engaging experiences.</p>
                                 <div class="team-social">
                                     <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
@@ -659,11 +663,11 @@
                                     <img src="{{ url_for('static', filename='Ap.png') }}" alt="Developer 3"
                                         class="img-fluid">
                                 </div>
-                                <h3>Mike Johnson</h3>
+                                <h3>Allamprabhu Hiremath</h3>
                                 <p class="team-role">Backend Specialist</p>
                             </div>
                             <div class="team-card-back">
-                                <p class="team-bio">Mike is an expert in scalable backend systems and database
+                                <p class="team-bio">Hanamant is an expert in scalable backend systems and database
                                     optimization.</p>
                                 <div class="team-social">
                                     <a href="#" class="social-icon"><i class="fab fa-linkedin"></i></a>
@@ -752,10 +756,8 @@
             alert('An error occurred while sending the email.');
         });
     });
+    
     </script>
-    
-    
-    
     <footer class="footer">
         <div class="container">
             <div class="row">

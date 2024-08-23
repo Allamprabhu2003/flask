@@ -1,62 +1,3 @@
-<!-- <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student List - {{ course_type }}</title>
-    <style>
-        table {
-            border-collapse: collapse;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background-color: #6c757d;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-        }
-    </style>
-</head>
-<body>
-    <h1>Student List - {{ course_type }}</h1>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Attendance Count</th>
-                <th>Attendance Rate</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for student in students %}
-            <tr>
-                <td>{{ student.name }}</td>
-                <td>{{ student.email }}</td>
-                <td>{{ student.attendance_count }}</td>
-                <td>{{ student.attendance_rate }}%</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    
-    <a href="{{ url_for('views.dashboard') }}" class="btn">Back to Dashboard</a>
-</body>
-</html> -->
-
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -97,6 +38,8 @@
                 <tr>
                     <th>Name</th>
                     <th>Email</th>
+                    <th>Edit</th>
+                    <th>Delete</th>
                 </tr>
             </thead>
             <tbody>
@@ -104,56 +47,60 @@
                 <tr>
                     <td>{{ student.name }}</td>
                     <td>{{ student.email }}</td>
-                    <td> <a href="{{ url_for('student.edit', student_id=student.id)}}">Edit</a></td>
-<td>
-    <!-- Assuming you have a way to get the student's ID, perhaps from a query parameter or context -->
-<button class="btn btn-danger" onclick="deleteStudent({{ student.id }})">Delete Student</button>
+                    <td>
+                        <a href="{{ url_for('student.edit', student_id=student.id) }}" class="btn btn-warning btn-sm">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                    </td>
+                    <td>
+                        <button class="btn btn-danger btn-sm" onclick="deleteStudent({{ student.id }})">
+                            <i class="fas fa-trash-alt"></i> Delete
+                        </button>
+                                                <input type="hidden" id="csrf_token" value="{{ csrf_token() }}">
 
-<!-- Hidden input to store CSRF token -->
-<input type="hidden" id="csrf_token" value="{{ csrf_token() }}">
-
-</td>
+                        
+                    </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="2">No students found for this course type.</td>
+                    <td colspan="4" class="text-center">No students found for this course type.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-        <a href="{{ url_for('views.dashboard') }}" class="btn btn-primary">Back to Dashboard</a>
+        <a href="{{ url_for('views.dashboard') }}" class="btn btn-primary mt-3">
+            <i class="fas fa-arrow-left"></i> Back to Dashboard
+        </a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script>
+        function deleteStudent(studentId) {
+            const csrfToken = document.getElementById('csrf_token').value;
 
-  
-<script>
-    function deleteStudent(studentId) {
-        const csrfToken = document.getElementById('csrf_token').value;
-
-        fetch('{{ url_for("student.delete_student") }}', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrfToken  // Ensure CSRF protection
-            },
-            body: JSON.stringify({ id: studentId })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('Student deleted successfully');
-                window.location.href = '{{ url_for("views.dashboard") }}';  // Redirect or update the UI as needed
-            } else {
-                alert('Error deleting student: ' + data.error);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-        });
-    }
-</script>
+            fetch('{{ url_for("student.delete_student") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken  // Ensure CSRF protection
+                },
+                body: JSON.stringify({ id: studentId })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Student deleted successfully');
+                    window.location.href = '{{ url_for("views.dashboard") }}';  // Redirect or update the UI as needed
+                } else {
+                    alert('Error deleting student: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
 </body>
 
 </html>

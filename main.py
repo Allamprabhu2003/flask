@@ -7,9 +7,9 @@ app.app_context().push()
 
 
 if __name__ == '__main__':
-    toolbar = DebugToolbarExtension(app)
+    # toolbar = DebugToolbarExtension(app)
     app.debug = True
     app.run(debug=True)
-    app.config.update({
-        "TESTING": True,
-    })
+    # app.config.update({
+    #     "TESTING": True,
+    # })

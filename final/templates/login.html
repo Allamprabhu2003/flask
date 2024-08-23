@@ -1,233 +1,222 @@
-<!-- <!-- <!-- 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <ul>
-            {% for category, message in messages %}
-                <li class="alert alert-{{ category }}">{{ message }}</li>
-            {% endfor %}
-        </ul>
-    {% endif %}
-{% endwith %}
-    <div class="container">
-        <form method="POST" action="{{ url_for('auth.login') }}">
-            <h3 class="text-center mt-4 mb-4">Login</h3>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary">Login</button>
-        </form>
-    </div>
-</body>
-</html> -->
-
-<!-- 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-        {% endfor %}
-    {% endif %}
-{% endwith %}
-
-    <div class="container mt-5">
-
-        <form method="POST" action="{{ url_for('auth.login') }}">
-            <h3 class="text-center mb-4">Login</h3>
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" class="form-control" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" class="form-control" id="password" name="password" required>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">Login</button>
-        </form>
-    </div>
-    <p><a href="{{ url_for('auth.sign_up') }}">Sign UP</a></p>
-    <div class="container mt-5">
-        
-
-    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
-</html>  --> 
-
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Sign In & Sign Up</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #6e8efb, #a777e3);
+            background: linear-gradient(135deg, #0047AB, #4169E1);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            font-family: 'Poppins', sans-serif;
+            padding: 18px;
+        }
+        .container {
+            background-color: rgba(45, 87, 239, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            max-width: 1080px;
+            width: 100%;
+        }
+        .row {
+            min-height: 540px;
+        }
+        .image-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
         }
-
-        .container {
-            background-color: white;
-            border-radius: 10px;
-            box-shadow: 0 14px 28px rgba(0,0,0,0.25), 0 10px 10px rgba(0,0,0,0.22);
-            overflow: hidden;
-            width: 100%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: row-reverse;
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            border-radius: 20px;
         }
-
         .form-container {
-            padding: 40px;
-            width: 50%;
-        }
-
-        .image-container {
-            background: url("{{ url_for('static', filename='imag.jpg') }}") center/cover;
-            width: 50%;
-        }
-
-        h2 {
-            margin-bottom: 20px;
-            color: #333;
-            text-align: center;
-        }
-
-        form {
+            padding: 20px;
             display: flex;
             flex-direction: column;
+            justify-content: center;
+            background-color: rgb(246, 244, 240);
         }
-
-        label {
-            margin-bottom: 5px;
-            color: #666;
+        .flip-card {
+            background-color: transparent;
+            width: 100%;
+            height: 100%;
+            perspective: 1000px;
         }
-
-        input {
-            padding: 12px;
-            margin-bottom: 20px;
-            border: none;
-            border-radius: 5px;
-            background-color: #f0f0f0;
-        }
-
-        .login-button {
-            background-color: #4e73df;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: background-color 0.3s ease;
-        }
-
-        .login-button:hover {
-            background-color: #3a5cbe;
-        }
-
-        .links {
-            margin-top: 20px;
+        .flip-card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
             text-align: center;
+            transition: transform 0.8s;
+            transform-style: preserve-3d;
         }
-
-        .links a {
-            color: #4e73df;
+        .flip-card.flipped .flip-card-inner {
+            transform: rotateY(180deg);
+        }
+        .flip-card-front,
+        .flip-card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            -webkit-backface-visibility: hidden;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .flip-card-back {
+            transform: rotateY(180deg);
+        }
+        .form-control {
+            background: rgba(255, 255, 255, 0.8);
+            border: none;
+            border-radius: 20px;
+            padding: 9px 18px;
+            margin-bottom: 5px;
+        }
+        .btn-primary {
+            background-color: #0047AB;
+            border: none;
+            border-radius: 20px;
+            padding: 9px 18px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary:hover {
+            background-color: #4169E1;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        .flip-link {
+            color: #0047AB;
             text-decoration: none;
-            margin: 0 10px;
+            margin-top: 10px;
+            display: inline-block;
+            transition: all 0.3s ease;
         }
-
+        .flip-link:hover {
+            transform: scale(1.05);
+        }
+        h2 {
+            color: #0047AB;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        .input-group-text {
+            background-color: transparent;
+            border: none;
+            color: #0047AB;
+        }
         .notification-container {
             position: fixed;
             top: 20px;
             right: 20px;
-            max-width: 300px;
+            max-width: 350px;
             z-index: 1000;
         }
 
+
+
         .alert {
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-            color: white;
-            font-size: 14px;
+            background-color:whitesmoke;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
             display: flex;
             align-items: center;
+            padding: 13px;
+            margin-bottom: 13px;
+            opacity: 0;
+            transform: translateX(50px);
+            transition: all 0.3s ease-out;
         }
-
-        .alert-danger { background-color: #ff4e50; }
-        .alert-success { background-color: #24c6dc; }
-        .alert-warning { background-color: #f7971e; }
-        .alert-info { background-color: #56ccf2; }
-
+        
+        .alert.animate-in {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
         .alert-icon {
-            margin-right: 10px;
-            font-size: 20px;
+            font-size: 22px;
+            margin-right: 13px;
+        }
+        
+        .alert-success .alert-icon {
+            color: #28a745;
+        }
+        
+        .alert-info .alert-icon {
+            color: #17a2b8;
+        }
+        
+        .alert-warning .alert-icon {
+            color: #ffc107;
+        }
+        
+        .alert-error .alert-icon {
+            color: #dc3545;
         }
 
+
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        .alert-error {
+            animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        
+
+
+        
+        .message {
+            flex-grow: 1;
+            font-size: 14px;
+            color: #4208f0;
+        }
+        
         .close-btn {
-            margin-left: auto;
             background: none;
             border: none;
-            color: white;
-            font-size: 20px;
+            color: #999;
             cursor: pointer;
+            font-size: 18px;
+            padding: 0;
+            margin-left: 10px;
+            transition: color 0.2s;
         }
-
+        
+        .close-btn:hover {
+            color: #333;
+        }
+        
+        
+        
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 2px;
+            margin-bottom: 5px;
+            display: none;
+            text-align: left;
+            margin-left: 2rem;
+        }
         @media (max-width: 768px) {
-            .container {
-                flex-direction: column;
-            }
-
-            .form-container, .image-container {
-                width: 100%;
-            }
-
             .image-container {
-                height: 200px;
+                display: none;
             }
         }
     </style>
@@ -237,9 +226,19 @@
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         {% for category, message in messages %}
-        <div class="alert alert-{{ category }}">
-            <span class="alert-icon">&#9888;</span>
-            <span>{{ message }}</span>
+        <div class="alert alert-{{ category }} animate-in">
+            <span class="alert-icon">
+                {% if category == 'success' %}
+                <i class="fas fa-check-circle"></i>
+                {% elif category == 'info' %}
+                <i class="fas fa-info-circle"></i>
+                {% elif category == 'warning' %}
+                <i class="fas fa-exclamation-triangle"></i>
+                {% elif category == 'error' %}
+                <i class="fas fa-times-circle"></i>
+                {% endif %}
+            </span>
+            <span class="message">{{ message }}</span>
             <button type="button" class="close-btn">&times;</button>
         </div>
         {% endfor %}
@@ -248,36 +247,296 @@
     </div>
 
     <div class="container">
-        <div class="form-container">
-            <h2>Sign in</h2>
-            <form method="POST" action="{{ url_for('auth.login') }}">
-                {{ form.csrf_token() }}
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" placeholder="Enter your email" required>
-                
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" placeholder="Enter your password" required>
-                
-                <button type="submit" class="login-button">Login</button>
-            </form>
-            <div class="links">
-                <a href="{{ url_for('auth.reset_request')}}">Forgot Password?</a>
-                <a href="{{ url_for('auth.sign_up') }}">Create New Account</a>
+        <div class="row">
+            <div class="col-md-6 image-container">
+                <img src="{{ url_for('static', filename='imag.jpg') }}" class="main-image" alt="Welcome Image" />
+            </div>
+            <div class="col-md-6 form-container">
+                <div class="flip-card">
+                    <div class="flip-card-inner">
+                        <div class="flip-card-front">
+                            <h2><i class="fas fa-user-circle me-2"></i>Sign In</h2>
+                            <form id="signInForm" method="POST" action="{{ url_for('auth.login') }}">
+                                {{ form.csrf_token() }}
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" id="signInEmail" class="form-control" name="email" placeholder="Email" required>
+                                </div>
+                                <div id="signInEmailError" class="error-message"></div>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" id="signInPassword" class="form-control" name="password" placeholder="Password" required>
+                                </div>
+                                <div id="signInPasswordError" class="error-message"></div>
+                                <button type="submit" class="btn btn-primary w-100 mt-3">Login</button>
+                            </form>
+                            <a href="{{ url_for('auth.reset_request')}}" class="flip-link">Forgot Password?</a>
+                            <a href="#" class="flip-link" onclick="flipCard()">Create New Account</a>
+                        </div>
+                        <div class="flip-card-back">
+                            <h2><i class="fas fa-user-plus me-2"></i>Sign Up</h2>
+                            <form id="signUpForm" method="POST" action="{{ url_for('auth.sign_up') }}">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" id="firstName" class="form-control" name="first_name" placeholder="First Name" required>
+                                </div>
+                                <div id="firstNameError" class="error-message"></div>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    <input type="text" id="lastName" class="form-control" name="last_name" placeholder="Last Name" required>
+                                </div>
+                                <div id="lastNameError" class="error-message"></div>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                    <input type="email" id="signUpEmail" class="form-control" name="email" placeholder="Email" required>
+                                </div>
+                                <div id="signUpEmailError" class="error-message"></div>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" id="signUpPassword1" class="form-control" name="password1" placeholder="Password" required>
+                                </div>
+                                <div id="signUpPassword1Error" class="error-message"></div>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                    <input type="password" id="signUpPassword2" class="form-control" name="password2" placeholder="Confirm Password" required>
+                                </div>
+                                <div id="signUpPassword2Error" class="error-message"></div>
+                                <div class="form-check text-start mb-3">
+                                    <input type="checkbox" class="form-check-input" id="is_teacher" name="is_teacher">
+                                    <label class="form-check-label" for="is_teacher">Admin</label>
+                                </div>
+                                <button type="submit" class="btn btn-primary w-100">Sign Up</button>
+                            </form>
+                            <a href="#" class="flip-link" onclick="flipCard()">Already have an account? Log In</a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="image-container"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function flipCard() {
+            document.querySelector('.flip-card').classList.toggle('flipped');
+        }
+    
+        function addInputListener(inputElement, errorElement, validationFunction) {
+            inputElement.addEventListener('input', function() {
+                const errorMessage = validationFunction(inputElement.value);
+                if (errorMessage) {
+                    errorElement.textContent = errorMessage;
+                    errorElement.style.display = 'block';
+                } else {
+                    errorElement.style.display = 'none';
+                }
+            });
+    
+            inputElement.addEventListener('blur', function() {
+                const errorMessage = validationFunction(inputElement.value);
+                if (errorMessage) {
+                    errorElement.textContent = errorMessage;
+                    errorElement.style.display = 'block';
+                } else {
+                    errorElement.style.display = 'none';
+                }
+            });
+        }
+    
+        // Sign In Validation
+        addInputListener(
+            document.getElementById('signInEmail'),
+            document.getElementById('signInEmailError'),
+            function(value) {
+                const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!emailRegex.test(value)) {
+                    return 'Invalid email format';
+                }
+                if (value.length > 30) {
+                    return 'Email must be 30 characters or less';
+                }
+                return '';
+            }
+        );
+    
+        addInputListener(
+            document.getElementById('signInPassword'),
+            document.getElementById('signInPasswordError'),
+            function(value) {
+                return value.length >= 6 ? '' : 'Password must be at least 6 characters long';
+            }
+        );
+    
+        // Sign Up Validation
+        addInputListener(
+            document.getElementById('firstName'),
+            document.getElementById('firstNameError'),
+            function(value) {
+                if (value.trim() === '') {
+                    return 'First name is required';
+                }
+                if (value.length < 2 || value.length > 30) {
+                    return 'First name must be between 2 and 30 characters';
+                }
+                return '';
+            }
+        );
+    
+        addInputListener(
+            document.getElementById('lastName'),
+            document.getElementById('lastNameError'),
+            function(value) {
+                if (value.trim() === '') {
+                    return 'Last name is required';
+                }
+                if (value.length < 2 || value.length > 30) {
+                    return 'Last name must be between 2 and 30 characters';
+                }
+                return '';
+            }
+        );
+    
+        addInputListener(
+            document.getElementById('signUpEmail'),
+            document.getElementById('signUpEmailError'),
+            function(value) {
+                const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                if (!emailRegex.test(value)) {
+                    return 'Invalid email format';
+                }
+                if (value.length > 30) {
+                    return 'Email must be 30 characters or less';
+                }
+                return '';
+            }
+        );
+    
+        addInputListener(
+            document.getElementById('signUpPassword1'),
+            document.getElementById('signUpPassword1Error'),
+            function(value) {
+                return value.length >= 6 ? '' : 'Password must be at least 6 characters long';
+            }
+        );
+    
+        addInputListener(
+            document.getElementById('signUpPassword2'),
+            document.getElementById('signUpPassword2Error'),
+            function(value) {
+                const password1 = document.getElementById('signUpPassword1').value;
+                return value === password1 ? '' : 'Passwords do not match';
+            }
+        );
+    
+        function validateForm(form) {
+            let isValid = true;
+            form.querySelectorAll('input').forEach(input => {
+                const errorElement = document.getElementById(input.id + 'Error');
+                if (errorElement) {
+                    const errorMessage = validateInput(input.id, input.value);
+                    if (errorMessage) {
+                        errorElement.textContent = errorMessage;
+                        errorElement.style.display = 'block';
+                        isValid = false;
+                    } else {
+                        errorElement.style.display = 'none';
+                    }
+                }
+            });
+            return isValid;
+        }
+    
+        function validateInput(inputName, value) {
+            const validationFunctions = {
+                signInEmail: function(value) {
+                    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    if (!emailRegex.test(value)) {
+                        return 'Invalid email format';
+                    }
+                    if (value.length > 30) {
+                        return 'Email must be 30 characters or less';
+                    }
+                    return '';
+                },
+                signInPassword: function(value) {
+                    return value.length >= 6 ? '' : 'Password must be at least 6 characters long';
+                },
+                firstName: function(value) {
+                    if (value.trim() === '') {
+                        return 'First name is required';
+                    }
+                    if (value.length < 2 || value.length > 30) {
+                        return 'First name must be between 2 and 30 characters';
+                    }
+                    return '';
+                },
+                lastName: function(value) {
+                    if (value.trim() === '') {
+                        return 'Last name is required';
+                    }
+                    if (value.length < 2 || value.length > 30) {
+                        return 'Last name must be between 2 and 30 characters';
+                    }
+                    return '';
+                },
+                signUpEmail: function(value) {
+                    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                    if (!emailRegex.test(value)) {
+                        return 'Invalid email format';
+                    }
+                    if (value.length > 30) {
+                        return 'Email must be 30 characters or less';
+                    }
+                    return '';
+                },
+                signUpPassword1: function(value) {
+                    return value.length >= 6 ? '' : 'Password must be at least 6 characters long';
+                },
+                signUpPassword2: function(value) {
+                    const password1 = document.getElementById('signUpPassword1').value;
+                    return value === password1 ? '' : 'Passwords do not match';
+                }
+            };
+    
+            return validationFunctions[inputName](value);
+        }
+    
+        document.getElementById('signInForm').addEventListener('submit', function(event) {
+            if (!validateForm(this)) {
+                event.preventDefault();
+            }
+        });
+    
+        document.getElementById('signUpForm').addEventListener('submit', function(event) {
+            if (!validateForm(this)) {
+                event.preventDefault();
+            }
+        });
+    
         document.addEventListener('DOMContentLoaded', function() {
-            var closeButtons = document.querySelectorAll('.close-btn');
-            closeButtons.forEach(function(button) {
-                button.addEventListener('click', function() {
-                    var alert = button.closest('.alert');
-                    alert.remove();
+            const alerts = document.querySelectorAll('.alert');
+    
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    alert.classList.add('animate-in');
+                }, 100);
+    
+                const closeBtn = alert.querySelector('.close-btn');
+                closeBtn.addEventListener('click', () => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateX(50px)';
+                    setTimeout(() => {
+                        alert.remove();
+                    }, 300);
                 });
+    
+                // Auto-close after 5 seconds
+                setTimeout(() => {
+                    closeBtn.click();
+                }, 5000);
             });
         });
     </script>
+    
 </body>
 </html>

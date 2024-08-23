@@ -273,16 +273,7 @@
         </div>
     </div>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            var closeButtons = document.querySelectorAll('.close-btn');
-            closeButtons.forEach(function(button) {
-                button.addEventListener('click', function() {
-                    var alert = button.closest('.alert');
-                    alert.remove();
-                });
-            });
-        });
-
+    
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.querySelector('form');
             const firstName = document.getElementById('first_name');
@@ -290,7 +281,7 @@
             const email = document.getElementById('email');
             const password1 = document.getElementById('password');
             const password2 = document.getElementById('confirm_password');
-
+        
             const setError = (element, message) => {
                 const formGroup = element.parentElement;
                 formGroup.classList.add('error');
@@ -303,7 +294,7 @@
                 }
                 error.innerText = message;
             };
-
+        
             const setSuccess = (element) => {
                 const formGroup = element.parentElement;
                 formGroup.classList.add('success');
@@ -313,80 +304,83 @@
                     error.remove();
                 }
             };
-
-       
-              console.log(isValidEmail('dsakadsk@123gmail.com')); // false
-              console.log(isValidEmail('user@example.com')); // true
-              console.log(isValidEmail('abc.123gmail.com')); // false
-              console.log(isValidEmail('abc@123gai.com')); // false
-              console.log(isValidEmail('valid@email.org')); // true
-            // const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-
-            form.addEventListener('submit', (e) => {
-
-                e.preventDefault();
-                
-              console.log(isValidEmail('dsakadsk@123gmail.com')); // false
-              console.log(isValidEmail('user@example.com')); // true
-              console.log(isValidEmail('abc.123gmail.com')); // false
-              console.log(isValidEmail('abc@123gai.com')); // false
-              console.log(isValidEmail('valid@email.org')); // true
-                let valid = true;
-
+        
+            const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        
+            const validateFirstName = () => {
                 if (firstName.value.trim().length < 2) {
                     setError(firstName, 'First name must be at least 2 characters long.');
-                    valid = false;
+                    return false;
                 } else {
                     setSuccess(firstName);
+                    return true;
                 }
-
+            };
+        
+            const validateLastName = () => {
                 if (lastName.value.trim().length < 2) {
                     setError(lastName, 'Last name must be at least 2 characters long.');
-                    valid = false;
+                    return false;
                 } else {
                     setSuccess(lastName);
+                    return true;
                 }
-
+            };
+        
+            const validateEmail = () => {
                 if (!isValidEmail(email.value.trim())) {
                     setError(email, 'Please provide a valid email address.');
-                    valid = false;
-
-
-
-
-                    
+                    return false;
                 } else {
                     setSuccess(email);
+                    return true;
                 }
-
+            };
+        
+            const validatePassword1 = () => {
                 if (password1.value.trim().length < 7) {
                     setError(password1, 'Password must be at least 7 characters long.');
-                    valid = false;
+                    return false;
                 } else {
                     setSuccess(password1);
+                    return true;
                 }
-
+            };
+        
+            const validatePassword2 = () => {
                 if (password1.value.trim() !== password2.value.trim()) {
                     setError(password2, 'Passwords do not match.');
-                    valid = false;
+                    return false;
                 } else {
                     setSuccess(password2);
+                    return true;
                 }
-
+            };
+        
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                let valid = true;
+        
+                if (!validateFirstName()) valid = false;
+                if (!validateLastName()) valid = false;
+                if (!validateEmail()) valid = false;
+                if (!validatePassword1()) valid = false;
+                if (!validatePassword2()) valid = false;
+        
                 if (valid) {
                     form.submit();
                 }
             });
-
-            // Optional: Validate on input change for real-time feedback
-            form.addEventListener('input', () => {
-                if (firstName.value.trim().length >= 2) setSuccess(firstName);
-                if (lastName.value.trim().length >= 2) setSuccess(lastName);
-                if (isValidEmail(email.value.trim())) setSuccess(email);
-                if (password1.value.trim().length >= 7) setSuccess(password1);
-                if (password1.value.trim() === password2.value.trim() && password2.value.trim() !== '') setSuccess(password2);
-            });
+        
+            // Validate on input change for real-time feedback
+            firstName.addEventListener('input', validateFirstName);
+            lastName.addEventListener('input', validateLastName);
+            email.addEventListener('input', validateEmail);
+            password1.addEventListener('input', validatePassword1);
+            password2.addEventListener('input', validatePassword2);
         });
+        
+   
     </script>
 </body>
 

@@ -21,6 +21,13 @@ body {
     font-weight: 500;
 }
 
+.error-message {
+    color: red;
+    font-size: 0.8em;
+    margin-top: 5px;
+    display: none;
+}
+
 .navbar-default .navbar-brand:hover,
 .navbar-default .navbar-nav > li > a:hover {
     color: #3498db;
